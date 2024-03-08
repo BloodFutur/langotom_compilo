@@ -16,7 +16,7 @@ flex -o lex.c lex.l || (err "step invalid: flex")
 gcc -Wall -Werror lex.c -o lex || (err "step invalid: gcc")
 rm lex.c
 
-for f in samples/*.c; do
+for f in ../samples/*.c; do
   ./lex  $f > $TMP
   diff $TMP $f.out || err "invalid test $f"
 done

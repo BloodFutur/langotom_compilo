@@ -1,1 +1,6 @@
-lex
+lexical_analYsis/lex
+grammatical_analYsis/c.tab.c
+grammatical_analYsis/c.tab.h
+grammatical_analYsis/c.output
+grammatical_analYsis/lex.yy.c
+grammatical_analYsis/c
