@@ -4,3 +4,13 @@ grammatical_analYsis/c.tab.h
 grammatical_analYsis/c.output
 grammatical_analYsis/lex.yy.c
 grammatical_analYsis/c
+display_syntax/lex.yy.c
+display_syntax/c.tab.c
+display_syntax/c.tab.h
+display_syntax/c.output
+display_syntax/c
+symbol_table/lex.yy.c
+symbol_table/c.tab.c
+symbol_table/c.tab.h
+symbol_table/c.output
+symbol_table/c
