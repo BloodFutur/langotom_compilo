@@ -18,6 +18,7 @@ hexa [0-9A-Fa-f]
 
 
 %%
+"main"      {return tMAIN;}
 "if"        {return tIF;}
 "else"      {return tELSE;}
 "while"     {return tWHILE;}

@@ -13,7 +13,7 @@
 %token <n> tNB // On prend le nombre
 %token <id> tID // On prend l'identifiant
 
-%token tIF tELSE tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+%token tMAIN tIF tELSE tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
 
 %left tOR
 %left tAND
@@ -29,7 +29,11 @@
 
 S : 
     Function S
-  | %empty {printf("S empty\n");}
+  | Main
+  ;
+
+Main :
+  tVOID tMAIN tLPAR tVOID tRPAR tLBRACE Body tRBRACE {printf("void main(void)\n");}
   ;
 
 Body : 
