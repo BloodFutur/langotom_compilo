@@ -13,89 +13,93 @@
 %token <n> tNB // On prend le nombre
 %token <id> tID // On prend l'identifiant
 
-%token tID tNB tIF tELSE tWHILE tPRINT tRETURN tINT tVOID tADD tSUB tMUL tDIV tASSIGN tEQ tNE tLT tLE tGT tGE tAND tOR tNOT tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+%token tIF tELSE tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+
+%left tOR
+%left tAND
+%left tEQ tNE
+%left tLT tLE tGT tGE
+%left tADD tSUB
+%left tMUL tDIV
+%right tNOT
+
+%left tCOMMA
 
 %%
 
 S : 
-    Function S 
-  | Main
-  | %empty
-  ;
-
-Main : tVOID tID "main" tLPAR tVOID tRPAR tLBRACE Body tRBRACE
+    Function S
+  | %empty  
   ;
 
 Body : 
     Declaration Body
   | Instruction Body
-  | %empty
+  | %empty  
   ;
 
-Operator : 
-    tADD
-  | tSUB
-  | tMUL
-  | tDIV
-  | tEQ
-  | tNE
-  | tLT
-  | tLE
-  | tGT
-  | tGE
-  | tAND
-  | tOR
-  | tNOT
-  ;
 
 Declaration : 
-    tINT DeclaredVariable tSEMI
+    tINT DeclaredVariable tSEMI  
   ;
 
 DeclaredVariable : 
-    tID
-  | tID tASSIGN Expression
-  | DeclaredVariable tCOMMA DeclaredVariable
+    tID  
+  | tID tASSIGN Expression  
+  | DeclaredVariable tCOMMA DeclaredVariable  
   ;
 
 FunctionCall : 
-    tID tLPAR tRPAR
-  | tID tLPAR ParameterCall tRPAR
+    tID tLPAR tRPAR  
+  | tID tLPAR ParameterCall tRPAR  
   ;
 
 ParameterCall : 
-    Expression
-  | Expression tCOMMA ParameterCall
+    Expression  
+  | Expression tCOMMA ParameterCall  
   ;
 
 Expression : 
-    tID
-  | tNB
-  | FunctionCall
-  | tLPAR Expression tRPAR
-  | Expression Operator Expression
+    tID  
+  | tNB  
+  | FunctionCall  
+  | tLPAR Expression tRPAR  
+  | Expression tADD Expression  
+  | Expression tSUB Expression  
+  | Expression tMUL Expression  
+  | Expression tDIV Expression  
+  | Expression tEQ Expression  
+  | Expression tNE Expression  
+  | Expression tLT Expression  
+  | Expression tLE Expression  
+  | Expression tGT Expression  
+  | Expression tGE Expression  
+  | tSUB Expression  
+  | tNOT Expression  
+  | Expression tAND Expression  
+  | Expression tOR Expression  
   ;
 
 Instruction : 
-    tID tASSIGN Expression tSEMI
-  | FunctionCall tSEMI
-  | tRETURN Expression tSEMI
-  | tPRINT tLPAR Expression tRPAR tSEMI
-  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE
-  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE tELSE tLBRACE Body tRBRACE
-  | tWHILE tLPAR Expression tRPAR tLBRACE Body tRBRACE
+    tID tASSIGN Expression tSEMI  
+  | FunctionCall tSEMI  
+  | tRETURN Expression tSEMI  
+  | tPRINT tLPAR Expression tRPAR tSEMI  
+  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE  
+  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE tELSE tLBRACE Body tRBRACE  
+  | tWHILE tLPAR Expression tRPAR tLBRACE Body tRBRACE  
   ;
 
 Function : 
-    tINT tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE
-  | tVOID tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE
-  | tVOID tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE
-  | tINT tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE
+    tINT tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE  
+  | tVOID tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE  
+  | tVOID tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE  
+  | tINT tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE  
   ;
 
 Parameter : 
-    tINT tID
-  | tINT tID tCOMMA Parameter
+    tINT tID  
+  | tINT tID tCOMMA Parameter  
   ;
 
 %%
