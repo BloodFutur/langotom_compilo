@@ -4,6 +4,7 @@
 
 %{
     #include "c.tab.h"
+    int line_number = 1;
 %}
 
 
@@ -49,7 +50,8 @@ hexa [0-9A-Fa-f]
 
 \/\/.*                      { ; } // Singleline comment
 \/\*(.*\n)*.*\*\/           { ; } // Multiline comment
-[ \t\n]*                      { ; } // Tabs, whitespace and newlines
+[ \t]*                      { ;} // Tabs, whitespace
+[\n]                      { line_number++ ; } // newlines
 
 (0x({hexa}+))               {yylval.n = (unsigned int)strtol(yytext, NULL,16); return tNB;}
 ({digit}*)                  {yylval.n = atoi(yytext); return tNB;}

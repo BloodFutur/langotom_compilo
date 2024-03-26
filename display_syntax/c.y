@@ -1,3 +1,7 @@
+/* 
+  * BONNET Ronan
+  * CAZENEUVE Anna
+*/
 %{
   #include <stdio.h>
   #include <stdlib.h>
