@@ -41,4 +41,22 @@ search -> return index of the element
 tId, $$ = recherche($1)
 
 declarer en haut
-%type<nb> expr
+%type<nb> 
+
+## INterpreteur
+```python
+    lines = open("asm.txt", "r").readlines()
+    asm = [l.split(" ") for l in lines]
+    asm = [[l[0]] + [int(x) for x in l[1:]] for l in asm]
+    mem = [0] * 256
+
+    ip = 0
+    while ip < len(asm):
+        if asm[ip][0] == "AFC":
+            mem[asm[ip][1]] = asm[ip][2]
+            ip += 1
+        elif ...
+    
+
+
+```

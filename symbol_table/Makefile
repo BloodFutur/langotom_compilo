@@ -7,7 +7,7 @@ lex.yy.c: c.l c.tab.h
 	flex c.l
 
 c: lex.yy.c c.tab.c c.tab.h
-	gcc -o c c.tab.c symbol_table.c lex.yy.c -lfl
+	gcc -o c c.tab.c symbol_table.c instructions_table.c asm.c lex.yy.c -lfl
 
 clean:
 	rm c c.tab.c lex.yy.c c.tab.h c.output

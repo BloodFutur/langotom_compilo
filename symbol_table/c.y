@@ -2,8 +2,9 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include "symbol_table.h"
+  #include "asm.h"
+  #include "instructions_table.h"
   extern int line_number;
-  FILE *file;
 %}
 
 %code provides {
@@ -53,8 +54,15 @@ Declaration :
   ;
 
 DeclaredVariable : 
-    tID {printf("declared variable with tID '%s'\n", $1); st_insert($1,line_number);}
-  | tID tASSIGN Expression {printf("declared variable with tID '%s' and expression\n", $1);}
+    tID {
+          printf("declared variable with tID '%s'\n", $1); 
+          st_insert($1,line_number);
+          }
+  | tID tASSIGN Expression {
+          printf("declared variable with tID '%s' and expression\n", $1);
+          st_insert($1,line_number);
+          asm_assign($1, $3);          
+        }
   | DeclaredVariable tCOMMA DeclaredVariable {printf("declared variable with tCOMMA\n");}
   ;
 
@@ -72,48 +80,35 @@ Expression :
     tID {printf("expression with tID '%s'\n", $1);
           $$ = st_search($1);
         }
-  | tNB {printf("expression with tNB '%d'\n", $1);
-         int a = st_insert_tmp($1, line_number);
-         st_print();
-         fprintf(file,"AFC %d %d\n", a, $1);
-         $$ = a;
-        }
+  | tNB { $$ = asm_nb(line_number, $1); }
   | FunctionCall {printf("expression with function call\n");}
-  | tLPAR Expression tRPAR {printf("expression with tLPAR and tRPAR\n");}
-  | Expression tADD Expression {
-          printf("expression with tADD\n");
-          int address = st_insert_tmp(0, line_number);
-          fprintf(file,"ADD %d %d %d\n", address, $1, $3);
-          $$ = address;
+  | tLPAR Expression tRPAR { printf("expression with tLPAR and tRPAR\n"); $$ = $2;
         }
-  | Expression tSUB Expression {printf("expression with tSUB\n");}
-  | Expression tMUL Expression {printf("expression with tMUL\n");}
-  | Expression tDIV Expression {printf("expression with tDIV\n");}
-  | Expression tEQ Expression {printf("expression with tEQ\n");}
-  | Expression tNE Expression {printf("expression with tNE\n");}
-  | Expression tLT Expression {printf("expression with tLT\n");}
-  | Expression tLE Expression {printf("expression with tLE\n");}
-  | Expression tGT Expression {printf("expression with tGT\n");}
-  | Expression tGE Expression {printf("expression with tGE\n");}
-  | tSUB Expression {printf("expression with tSUB\n");}
-  | tNOT Expression {printf("expression with tNOT\n");}
-  | Expression tAND Expression {printf("expression with tAND\n");}
-  | Expression tOR Expression {printf("expression with tOR\n");}
+  | Expression tADD Expression { $$ = asm_add(line_number, $1, $3); }
+  | Expression tSUB Expression { $$ = asm_sub(line_number, $1, $3); }
+  | Expression tMUL Expression { $$ = asm_mul(line_number, $1, $3); }
+  | Expression tDIV Expression { $$ = asm_div(line_number, $1, $3); }
+  | Expression tEQ Expression  { $$ = asm_eq(line_number, $1, $3); }
+  | Expression tNE Expression {$$ = asm_ne(line_number, $1, $3);}
+  | Expression tLT Expression  { $$ = asm_lt(line_number, $1, $3); }
+  | Expression tLE Expression {$$ = asm_le(line_number, $1, $3);}
+  | Expression tGT Expression  { $$ = asm_gt(line_number, $1, $3);}
+  | Expression tGE Expression {$$ = asm_ge(line_number, $1, $3);}
+  | tSUB Expression {$$ = asm_neg_nb(line_number, $2);}
+  | tNOT Expression { $$ = asm_not(line_number, $2);}
+  | Expression tAND Expression {$$ = asm_and(line_number, $1, $3);}
+  | Expression tOR Expression {$$ = asm_or(line_number, $1, $3);}
   ;
 
 Instruction : 
-    tID tASSIGN Expression tSEMI {
-      printf("instruction with tID %s and expression %d\n", $1, $3);
-      int a=st_search($1);
-      fprintf(file,"COP %d %d\n", a, $3);
-      st_pop_tmp_all();
-      st_print();
-      }
+    tID tASSIGN Expression tSEMI { asm_assign($1, $3); }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
   | tRETURN Expression tSEMI {printf("instruction with tRETURN and expression\n");}
   | tPRINT tLPAR Expression tRPAR tSEMI {printf("instruction with tPRINT and expression\n");}
-  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE {printf("instruction with tIF and expression\n");}
   | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE tELSE tLBRACE Body tRBRACE {printf("instruction with tIF and tELSE\n");}
+  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE {
+            printf("instruction with tIF and expression\n"); 
+            } //asm_if(line_number, ??line_return, $3);
   | tWHILE tLPAR Expression tRPAR tLBRACE Body tRBRACE {printf("instruction with tWHILE and expression\n");}
   ;
 
@@ -137,16 +132,14 @@ void yyerror(const char *msg) {
 }
 
 int main(void) {
-  file = fopen("asm.txt", "w");
-  if (file == NULL) {
-    fprintf(stderr, "Can't open file\n");
-    exit(1);
-  }
 
+  asm_init();
   yyparse();
   st_print();
-  fclose(file);
 
+  asm_close();
+  it_pretty_print();
   // st_test();
+  // it_test();
 }
 
