@@ -19,7 +19,7 @@ char* it_get_opcode(enum opcode opc) {
         case iDIV:
             return "DIV";
         case iEQ:
-            return "EQ";
+            return "EQU";
         case iNEQ:
             return "NEQ";
         case iLT:   
@@ -36,43 +36,70 @@ char* it_get_opcode(enum opcode opc) {
             return "OR";
         case iNOT:
             return "NOT";
+        case iJMP:
+            return "JMP";
+        case iJMPF:
+            return "JMF";
+        case iPRINT:
+            return "PRI";
+        case iNOP:
+            return "NOP";
     }
 }
 
-void it_insert(enum opcode opc, int op1, int op2, int op3) {
+int it_insert(enum opcode opc, int op1, int op2, int op3) {
     i_table[it_index].opcode = opc;
     i_table[it_index].op1 = op1;
     i_table[it_index].op2 = op2;
     i_table[it_index].op3 = op3;
     it_index++;
+    return it_index-1;
 }
 
+int it_get_index() {
+    return it_index;
+}
+
+void it_patch_op1(int index, int op) {
+    i_table[index].op1 = op;
+}
+
+void it_patch_op2(int index, int op) {
+    i_table[index].op2 = op;
+}
 
 void it_print_asm() {
+    FILE *file;
+    file = fopen("asm.txt", "w");
     for(int i = 0; i < it_index; i++) {
         enum opcode opc = i_table[i].opcode;
-        if(opc == iAFC || opc == iCOP) {
-            printf("%s %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
+        if(opc == iAFC || opc == iCOP || opc == iJMPF) {
+            fprintf(file,"%s %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT) {
-            printf("%s %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1);
+        } else if (opc==iNOT || opc==iJMP) {
+            fprintf(file,"%s %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1);
             continue;
         } else {
-            printf("%s %d %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2, i_table[i].op3);
+            fprintf(file,"%s %d %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2, i_table[i].op3);
             continue;
         }
     }
+    fclose(file);
 }
 
 void it_pretty_print() {
+
     printf("Instructions Table:\n");
     for(int i = 0; i < it_index; i++) {
         enum opcode opc = i_table[i].opcode;
-        if(opc == iAFC || opc == iCOP) {
+        if(opc == iAFC || opc == iCOP || opc == iJMPF) {
             printf("0x%02x\t %-5s %-4d %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT) {
+        } else if (opc==iNOT || opc==iJMP) {
             printf("0x%02x\t %-5s %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1);
+            continue;
+        } else if (opc==iNOP) {
+            printf("0x%02x\t %-5s\n", i, it_get_opcode(i_table[i].opcode));
             continue;
         } else {
             printf("0x%02x\t %-5s %-4d %-4d %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2, i_table[i].op3);

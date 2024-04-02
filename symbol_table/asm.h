@@ -5,8 +5,8 @@
 #include <stdio.h>
 
 // @TODO : Check that a variable is declared before using it (search returns -1 if not found)
-void asm_init();
-void asm_close();
+// @TODO: LE and GE => create operator asm.
+// @TODO: Correct NEG number
 
 int asm_nb(int line_number, int address1);
 
@@ -29,6 +29,8 @@ int asm_not(int line_number, int address1);
 
 int asm_and(int line_number, int address1, int address2);
 int asm_or(int line_number, int address1, int address2);
+
+void asm_print(int address1);
 
 //void asm_if()
 

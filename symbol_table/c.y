@@ -16,8 +16,9 @@
 
 %token <n> tNB // On prend le nombre
 %token <id> tID // On prend l'identifiant
+%token <n> tIF tELSE
 
-%token tMAIN tIF tELSE tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+%token tMAIN tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
 
 %left tOR
 %left tAND
@@ -104,12 +105,36 @@ Instruction :
     tID tASSIGN Expression tSEMI { asm_assign($1, $3); }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
   | tRETURN Expression tSEMI {printf("instruction with tRETURN and expression\n");}
-  | tPRINT tLPAR Expression tRPAR tSEMI {printf("instruction with tPRINT and expression\n");}
-  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE tELSE tLBRACE Body tRBRACE {printf("instruction with tIF and tELSE\n");}
-  | tIF tLPAR Expression tRPAR tLBRACE Body tRBRACE {
-            printf("instruction with tIF and expression\n"); 
-            } //asm_if(line_number, ??line_return, $3);
+  | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
+  // | tIF tLPAR Expression tRPAR tLBRACE {
+  //     // int line_return = it_insert(iJMPF, -1, 0, 0);
+  //     // $1 = line_return;
+  // } Body tRBRACE tELSE tLBRACE Body tRBRACE {printf("instruction with tIF and tELSE\n");}
+  | tIF tLPAR Expression tRPAR tLBRACE
+    {
+      printf("Expression: %d\n", $3);
+      int line_return = it_insert(iJMPF, $3, -1, 0);
+      $1 = line_return;
+    } 
+    Body 
+    {
+      int current = it_get_index();
+      it_patch_op2($1, current+1);
+    } tRBRACE ElsePart
   | tWHILE tLPAR Expression tRPAR tLBRACE Body tRBRACE {printf("instruction with tWHILE and expression\n");}
+  ;
+
+ElsePart : 
+    tELSE tLBRACE {
+      int line_return = it_insert(iJMP, -1, 0, 0);
+      $1 = line_return;
+    
+    } Body {
+      int current = it_get_index();
+      it_patch_op1($1, current);
+    
+    } tRBRACE {printf("else part with tELSE\n");}
+  | %empty {printf("else part empty\n"); it_insert(iNOP, 0, 0, 0);}
   ;
 
 Function : 
@@ -133,12 +158,13 @@ void yyerror(const char *msg) {
 
 int main(void) {
 
-  asm_init();
+  // asm_init();
   yyparse();
   st_print();
 
-  asm_close();
+  // asm_close();
   it_pretty_print();
+  it_print_asm();
   // st_test();
   // it_test();
 }

@@ -3,7 +3,7 @@ asm = [l.split(" ") for l in lines]
 asm = [[l[0]] + [int(x) for x in l[1:]] for l in asm]
 mem = [0] * 255
 
-print(asm)
+# print(asm)
 
 ip = 0
 while ip < len(asm):
@@ -49,10 +49,20 @@ while ip < len(asm):
     elif asm[ip][0] == "OR":
         mem[asm[ip][1]] = mem[asm[ip][2]] or mem[asm[ip][3]]
         ip += 1
-    
+    elif asm[ip][0] == "JMP":
+        ip = asm[ip][1]
+    elif asm[ip][0] == "JMF":
+        if not mem[asm[ip][1]]:
+            ip = asm[ip][2]
+        else:
+            ip += 1
+    elif asm[ip][0] == "PRI":
+        print(mem[asm[ip][1]])
+        ip += 1
     else:
         print("Unknown instruction: " + asm[ip][0])
         break
 
+print("\nMemory at the end:")
 print(mem)    
 

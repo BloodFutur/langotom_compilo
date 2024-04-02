@@ -10,11 +10,17 @@ typedef struct {
     int op3;
 } struct_instruction;
 
-enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT};
+enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT, iJMP, iJMPF, iPRINT, iNOP};
 
 char* it_get_opcode(enum opcode opc);
 
-void it_insert(enum opcode opcode, int op1, int op2, int op3);
+int it_insert(enum opcode opcode, int op1, int op2, int op3);
+
+int it_get_index();
+
+void it_patch_op1(int index, int op);
+void it_patch_op2(int index, int op);
+
 
 void it_print_asm();
 
