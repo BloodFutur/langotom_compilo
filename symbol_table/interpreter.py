@@ -34,6 +34,9 @@ while ip < len(asm):
     elif asm[ip][0] == "LT":
         mem[asm[ip][1]] = mem[asm[ip][2]] < mem[asm[ip][3]]
         ip += 1
+    elif asm[ip][0] == "LE":
+        mem[asm[ip][1]] = mem[asm[ip][2]] <= mem[asm[ip][3]]
+        ip += 1
     elif asm[ip][0] == "GT":
         mem[asm[ip][1]] = mem[asm[ip][2]] > mem[asm[ip][3]]
         ip += 1

@@ -10,6 +10,7 @@ typedef struct {
     int line_number;
 } struct_symbol;
 
+bool st_is_tmp(int address);
 
 int st_insert(char *name, int line_number);
 

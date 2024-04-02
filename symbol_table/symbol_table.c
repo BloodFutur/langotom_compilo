@@ -7,6 +7,10 @@ struct_symbol symbol_table[TABLE_SIZE];
 int st_index = 0;
 int st_indextmp = TABLE_SIZE - 1;
 
+bool st_is_tmp(int address){
+    return (address >= st_indextmp);
+}
+
 int st_insert(char *name, int line_number) {
     if(st_index > st_indextmp) {
         printf("Error: Symbol table is full\n");

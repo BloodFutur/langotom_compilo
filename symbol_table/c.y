@@ -107,43 +107,57 @@ Instruction :
   | FunctionCall tSEMI {printf("instruction with function call\n");}
   | tRETURN Expression tSEMI {printf("instruction with tRETURN and expression\n");}
   | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
-  // | tIF tLPAR Expression tRPAR tLBRACE {
-  //     // int line_return = it_insert(iJMPF, -1, 0, 0);
-  //     // $1 = line_return;
-  // } Body tRBRACE tELSE tLBRACE Body tRBRACE {printf("instruction with tIF and tELSE\n");}
   | tIF tLPAR Expression tRPAR tLBRACE
     {
       printf("Expression: %d\n", $3);
-      int line_return = it_insert(iJMPF, $3, -1, 0);
+      //JMP to unknown line if condition not met
+      int line_return = it_insert(iJMPF, $3, -1, 0); 
       $1 = line_return;
     } 
     Body 
     {
+      // Update the line number of the JMPF instruction
       int current = it_get_index();
       it_patch_op2($1, current+1);
-    } tRBRACE ElsePart
-  | tWHILE tLPAR Expression tRPAR tLBRACE {
-      int line_return = it_insert(iJMPF, $3, -1, 0);
+    } 
+    tRBRACE ElsePart
+    
+  | tWHILE tLPAR Expression tRPAR tLBRACE 
+    {
+      printf("Expression: %d\n", $3);
+      //JMP to unknown line if condition not met
+      int line_return = it_insert(iJMPF, $3, -1, 0); 
       $1 = line_return;
-  } Body tRBRACE {
-    printf("instruction with tWHILE and expression\n");
-    int current = it_get_index();
-    it_patch_op2($1, current+1);
-    it_insert(iJMP, $1-1, 0, 0);
-  }
+    } Body tRBRACE {
+      printf("instruction with tWHILE and expression\n");
+      // Update the line number of the JMPF instruction
+      int current = it_get_index();
+      it_patch_op2($1, current+1);
+      //JMP to the entry of while loop again after executing body
+      it_insert(iJMP, $1-1, 0, 0);
+    }
   ;
 
 ElsePart : 
     tELSE tLBRACE {
+      // Add a JMP instruction to jump to the end of the if/else block
       int line_return = it_insert(iJMP, -1, 0, 0);
       $1 = line_return;
     
     } Body {
+      // Update the line number of the JMP instruction
       int current = it_get_index();
       it_patch_op1($1, current);
     
     } tRBRACE {printf("else part with tELSE\n");}
-  | %empty {printf("else part empty\n"); it_insert(iNOP, 0, 0, 0);}
+  | %empty 
+    {
+      // Add a NOP instruction if the else part is empty
+      // because we jump to the end of the if block and if there is a else part,
+      // we have one more instruction to execute
+      printf("else part empty\n");
+      it_insert(iNOP, 0, 0, 0);
+    }
   ;
 
 Function : 
