@@ -17,8 +17,9 @@
 %token <n> tNB // On prend le nombre
 %token <id> tID // On prend l'identifiant
 %token <n> tIF tELSE
+%token <n> tWHILE
 
-%token tMAIN tWHILE tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+%token tMAIN tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
 
 %left tOR
 %left tAND
@@ -121,7 +122,15 @@ Instruction :
       int current = it_get_index();
       it_patch_op2($1, current+1);
     } tRBRACE ElsePart
-  | tWHILE tLPAR Expression tRPAR tLBRACE Body tRBRACE {printf("instruction with tWHILE and expression\n");}
+  | tWHILE tLPAR Expression tRPAR tLBRACE {
+      int line_return = it_insert(iJMPF, $3, -1, 0);
+      $1 = line_return;
+  } Body tRBRACE {
+    printf("instruction with tWHILE and expression\n");
+    int current = it_get_index();
+    it_patch_op2($1, current+1);
+    it_insert(iJMP, $1-1, 0, 0);
+  }
   ;
 
 ElsePart : 
