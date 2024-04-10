@@ -70,5 +70,6 @@ int asm_not(int line_number, int address1){
 
 void asm_print(int address1) {
     printf("instruction with tPRINT and expression\n");
+    if(st_is_tmp(address1)) {st_pop_tmp();}
     it_insert(iPRINT,address1, 0,0);
 }

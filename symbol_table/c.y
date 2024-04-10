@@ -111,6 +111,7 @@ Instruction :
     {
       printf("Expression: %d\n", $3);
       //JMP to unknown line if condition not met
+      if(st_is_tmp($3)) {st_pop_tmp();}
       int line_return = it_insert(iJMPF, $3, -1, 0); 
       $1 = line_return;
     } 
@@ -135,6 +136,8 @@ Instruction :
       it_patch_op2($1, current+1);
       //JMP to the entry of while loop again after executing body
       it_insert(iJMP, $1-1, 0, 0);
+      st_pop_tmp(); // @TODO: check if this is correct,we need to pop 
+      // the temporary variable from the stack at a moment but idk when
     }
   ;
 
