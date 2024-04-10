@@ -5,6 +5,7 @@
   #include "asm.h"
   #include "instructions_table.h"
   extern int line_number;
+  int depth = 0;
 %}
 
 %code provides {
@@ -41,7 +42,7 @@ S :
   ;
 
 Main :
-  tVOID tMAIN tLPAR tVOID tRPAR tLBRACE Body tRBRACE {printf("void main(void)\n");}
+  tVOID tMAIN tLPAR tVOID tRPAR tLBRACE {depth++;} Body tRBRACE {depth--;printf("void main(void)\n");}
   ;
 
 Body : 
@@ -58,11 +59,11 @@ Declaration :
 DeclaredVariable : 
     tID {
           printf("declared variable with tID '%s'\n", $1); 
-          st_insert($1,line_number);
+          st_insert($1,line_number, depth);
           }
   | tID tASSIGN Expression {
           printf("declared variable with tID '%s' and expression\n", $1);
-          st_insert($1,line_number);
+          st_insert($1,line_number, depth);
           asm_assign($1, $3);          
         }
   | DeclaredVariable tCOMMA DeclaredVariable {printf("declared variable with tCOMMA\n");}
@@ -82,24 +83,24 @@ Expression :
     tID {printf("expression with tID '%s'\n", $1);
           $$ = st_search($1);
         }
-  | tNB { $$ = asm_nb(line_number, $1); }
+  | tNB { $$ = asm_nb(line_number, $1, depth); }
   | FunctionCall {printf("expression with function call\n");}
   | tLPAR Expression tRPAR { printf("expression with tLPAR and tRPAR\n"); $$ = $2;
         }
-  | Expression tADD Expression { $$ = asm_add(line_number, $1, $3); }
-  | Expression tSUB Expression { $$ = asm_sub(line_number, $1, $3); }
-  | Expression tMUL Expression { $$ = asm_mul(line_number, $1, $3); }
-  | Expression tDIV Expression { $$ = asm_div(line_number, $1, $3); }
-  | Expression tEQ Expression  { $$ = asm_eq(line_number, $1, $3); }
-  | Expression tNE Expression {$$ = asm_ne(line_number, $1, $3);}
-  | Expression tLT Expression  { $$ = asm_lt(line_number, $1, $3); }
-  | Expression tLE Expression {$$ = asm_le(line_number, $1, $3);}
-  | Expression tGT Expression  { $$ = asm_gt(line_number, $1, $3);}
-  | Expression tGE Expression {$$ = asm_ge(line_number, $1, $3);}
-  | tSUB Expression {$$ = asm_neg_nb(line_number, $2);}
-  | tNOT Expression { $$ = asm_not(line_number, $2);}
-  | Expression tAND Expression {$$ = asm_and(line_number, $1, $3);}
-  | Expression tOR Expression {$$ = asm_or(line_number, $1, $3);}
+  | Expression tADD Expression { $$ = asm_add(line_number, $1, $3, depth); }
+  | Expression tSUB Expression { $$ = asm_sub(line_number, $1, $3, depth); }
+  | Expression tMUL Expression { $$ = asm_mul(line_number, $1, $3, depth); }
+  | Expression tDIV Expression { $$ = asm_div(line_number, $1, $3, depth); }
+  | Expression tEQ Expression  { $$ = asm_eq(line_number, $1, $3, depth); }
+  | Expression tNE Expression {$$ = asm_ne(line_number, $1, $3, depth);}
+  | Expression tLT Expression  { $$ = asm_lt(line_number, $1, $3, depth); }
+  | Expression tLE Expression {$$ = asm_le(line_number, $1, $3, depth);}
+  | Expression tGT Expression  { $$ = asm_gt(line_number, $1, $3, depth);}
+  | Expression tGE Expression {$$ = asm_ge(line_number, $1, $3, depth);}
+  | tSUB Expression {$$ = asm_neg_nb(line_number, $2, depth);}
+  | tNOT Expression { $$ = asm_not(line_number, $2, depth);}
+  | Expression tAND Expression {$$ = asm_and(line_number, $1, $3, depth);}
+  | Expression tOR Expression {$$ = asm_or(line_number, $1, $3, depth);}
   ;
 
 Instruction : 
@@ -109,6 +110,7 @@ Instruction :
   | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
   | tIF tLPAR Expression tRPAR tLBRACE
     {
+      depth++;
       printf("Expression: %d\n", $3);
       //JMP to unknown line if condition not met
       if(st_is_tmp($3)) {st_pop_tmp();}
@@ -121,15 +123,17 @@ Instruction :
       int current = it_get_index();
       it_patch_op2($1, current+1);
     } 
-    tRBRACE ElsePart
+    tRBRACE {depth--;} ElsePart
     
   | tWHILE tLPAR Expression tRPAR tLBRACE 
     {
+      depth++;
       printf("Expression: %d\n", $3);
       //JMP to unknown line if condition not met
       int line_return = it_insert(iJMPF, $3, -1, 0); 
       $1 = line_return;
     } Body tRBRACE {
+      depth--;
       printf("instruction with tWHILE and expression\n");
       // Update the line number of the JMPF instruction
       int current = it_get_index();
@@ -143,6 +147,7 @@ Instruction :
 
 ElsePart : 
     tELSE tLBRACE {
+      depth++;
       // Add a JMP instruction to jump to the end of the if/else block
       int line_return = it_insert(iJMP, -1, 0, 0);
       $1 = line_return;
@@ -152,7 +157,7 @@ ElsePart :
       int current = it_get_index();
       it_patch_op1($1, current);
     
-    } tRBRACE {printf("else part with tELSE\n");}
+    } tRBRACE {depth--;printf("else part with tELSE\n");}
   | %empty 
     {
       // Add a NOP instruction if the else part is empty

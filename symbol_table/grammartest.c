@@ -10,6 +10,7 @@ void main(void) { // Main function
     j = a - 10; // j = 764 - 10 = 754
     while (i < j) {
       i = i + 1 + 0 + 0;
+      int k;
       print(i); // print(3), print(4), ..., print(754)
     }
   }

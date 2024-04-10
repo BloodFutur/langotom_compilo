@@ -6,11 +6,11 @@
 #include "instructions_table.h"
 
 #define ASSEMBLE_BINARY_OP(instruction, opcode) \
-int asm_##instruction(int line_number, int address1, int address2) {\
+int asm_##instruction(int line_number, int address1, int address2, int depth) {\
     printf("expression with t" #instruction " '%d' " #opcode " '%d'\n", address1, address2); \
     if(st_is_tmp(address1)) {st_pop_tmp();} \
     if(st_is_tmp(address2)) {st_pop_tmp();} \
-    int address = st_insert_tmp(0, line_number); \
+    int address = st_insert_tmp(0, line_number, depth); \
     it_insert(opcode, address, address1, address2); \
     return address; \
 }
@@ -32,9 +32,9 @@ ASSEMBLE_BINARY_OP(and, iAND)
 ASSEMBLE_BINARY_OP(or, iOR)
 
 
-int asm_nb(int line_number, int address1){
+int asm_nb(int line_number, int address1, int depth){
     printf("expression with tNB '%d'\n", address1);
-    int a = st_insert_tmp(address1, line_number);
+    int a = st_insert_tmp(address1, line_number, depth);
     st_print();
     it_insert(iAFC, a, address1, 0);
     // fprintf(file,"AFC %d %d\n", a, address1);
@@ -51,18 +51,18 @@ void asm_assign(char* address1, int address2){
 }
 
 
-int asm_neg_nb(int line_number, int address1){
+int asm_neg_nb(int line_number, int address1, int depth){
     printf("expression with tSUB\n");
-    int address = st_insert_tmp(0, line_number);
+    int address = st_insert_tmp(0, line_number, depth);
     it_insert(iAFC, address, 0 , 0);
     it_insert(iSOU, address, address, address1);
     // fprintf(file,"SOU %d %d %d\n", address, address, address1);
     return address;
 }
 
-int asm_not(int line_number, int address1){
+int asm_not(int line_number, int address1, int depth){
     printf("expression with tNOT\n");
-    int address = st_insert_tmp(0, line_number);
+    int address = st_insert_tmp(0, line_number, depth);
     it_insert(iNOT, address, 0, 0);
     // fprintf(file,"NOT %d\n", address);
     return address;
