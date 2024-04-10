@@ -1,9 +1,22 @@
-#include <stdio.h>
+/**
+ * @file instructions_table.c
+ * @author Ronan Bonnet
+ * @author Anna Cazeneuve
+ * @brief Implementation of the instructions table
+ * @version 0.1
+ * @date 2024-04-10
+ * @bug No known bugs 
+ */
+#include <stdio.h> // printf
 #include "instructions_table.h"
 
+/* Instructions Table */
 struct_instruction i_table[INSTRUCTIONS_TABLE_SIZE];
+
+/* Index variable for instructions */
 int it_index = 0;
 
+/* Get the opcode as a string */
 char* it_get_opcode(enum opcode opc) {
     switch(opc) {
         case iAFC:
@@ -47,7 +60,12 @@ char* it_get_opcode(enum opcode opc) {
     }
 }
 
+/* Insert an instruction in the instructions table */
 int it_insert(enum opcode opc, int op1, int op2, int op3) {
+    if(it_index >= INSTRUCTIONS_TABLE_SIZE) {
+        printf("Error: Instructions table is full\n");
+        return -1;
+    }
     i_table[it_index].opcode = opc;
     i_table[it_index].op1 = op1;
     i_table[it_index].op2 = op2;
@@ -56,20 +74,26 @@ int it_insert(enum opcode opc, int op1, int op2, int op3) {
     return it_index-1;
 }
 
+/* Get the index of the last instruction in the table */
 int it_get_index() {
     return it_index;
 }
 
+/* Patch the first operand of an instruction: JMP */
 void it_patch_op1(int index, int op) {
     i_table[index].op1 = op;
 }
 
+/* Patch the second operand of an instruction: JMPF */
 void it_patch_op2(int index, int op) {
     i_table[index].op2 = op;
 }
 
+/* Print the assembly code into a FILE */
 void it_print_asm() {
     FILE *file;
+
+    // File opening
     file = fopen("asm.txt", "w");
     for(int i = 0; i < it_index; i++) {
         enum opcode opc = i_table[i].opcode;
@@ -90,6 +114,7 @@ void it_print_asm() {
     fclose(file);
 }
 
+/* Print the assembly code into the console */
 void it_pretty_print() {
 
     printf("Instructions Table:\n");
@@ -111,25 +136,7 @@ void it_pretty_print() {
     }
 }
 
+/* Clear the instructions table */
 void it_clear() {
     it_index = 0;
-}
-
-void it_test() {
-    it_insert(iAFC, 0, 0, 0);
-    it_insert(iCOP, 1, 2, 0);
-    it_insert(iADD, 3, 4, 5);
-    it_insert(iSOU, 6, 7, 8);
-    it_insert(iMUL, 9, 10, 11);
-    it_insert(iDIV, 12, 13, 14);
-    it_insert(iEQ, 15, 16, 17);
-    it_insert(iNEQ, 18, 19, 20);
-    it_insert(iLT, 21, 22, 23);
-    it_insert(iLE, 24, 25, 26);
-    it_insert(iGT, 27, 28, 29);
-    it_insert(iGE, 30, 31, 32);
-    it_insert(iAND, 33, 34, 35);
-    it_insert(iOR, 36, 37, 38);
-    it_insert(iNOT, 39, 0, 0);
-    it_pretty_print();
 }
