@@ -23,7 +23,24 @@
 
 #define TABLE_SIZE 255 // Change this value if you need more symbols
 
+/* Macro to define the symbol types for enum and string conversion */
+#define SYMBOLTYPES \
+    X(TMP) \
+    X(VARIABLE) \
 
+/**
+ * @brief The type of a symbol
+ * 
+ * A symbol can be a variable or a function.
+ */
+typedef enum {
+    #define X(symboltype) symboltype,
+    SYMBOLTYPES
+    #undef X
+} symboltype_t;
+
+
+extern const char* const symboltype_str[];
 
 /**
  * @brief A symbol in the symbol table
@@ -40,6 +57,7 @@
 typedef struct {
     char name[32];
     int line_number;
+    symboltype_t symboltype;
     int depth;
 } struct_symbol;
 
@@ -69,7 +87,7 @@ int st_pop_depth(int depth);
  * @return the index of the symbol in the symbol table
  */
 int st_insert(char *name, int line_number, int depth);
-
+// void st_set_symboltype(int index, symboltype_t symboltype);
 
 void st_pop();
 
