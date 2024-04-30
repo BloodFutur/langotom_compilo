@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define TMP_BASE TABLE_SIZE/2
+
 /**
  * @brief The symbol table
  * 
@@ -20,6 +22,7 @@
  * the temporary symbols.
  */
 struct_symbol symbol_table[TABLE_SIZE];
+
 
 
 /**
@@ -36,17 +39,17 @@ int st_index = 0;
  * This variable is used to keep track of the index of the
  * next temporary symbol to insert in the symbol table.
  */
-int st_indextmp = TABLE_SIZE - 1;
+int st_indextmp = TMP_BASE;
 
 
 // O(1)
 bool st_is_tmp(int address){
-    return (address >= st_indextmp);
+    return ( TABLE_SIZE > address && address >= TMP_BASE);
 }
 
 // O(TABLE_SIZE)
 int st_insert(char *name, int line_number, int depth) {
-    if(st_index > st_indextmp) {
+    if(st_index >= TMP_BASE) {
         printf("Error: Symbol table is full\n");
         return -1;
     }
@@ -65,7 +68,7 @@ int st_insert(char *name, int line_number, int depth) {
 
 // O(TABLE_SIZE)
 int st_insert_tmp(int value, int line_number, int depth) {
-    if(st_indextmp < st_index) {
+    if(st_indextmp >= TABLE_SIZE) {
         printf("Error: Symbol table is full\n");
         return -1;
     }
@@ -73,27 +76,20 @@ int st_insert_tmp(int value, int line_number, int depth) {
     // strncpy(symbol_table[st_indextmp].name, sprintf(value), 32);
     symbol_table[st_indextmp].line_number = line_number;
     symbol_table[st_indextmp].depth = depth;
-    st_indextmp--;
-    return st_indextmp+1;
+    st_indextmp++;
+    return st_indextmp-1;
 }
 
 // O(1)
 void st_clear() {
     st_index = 0;
-    st_indextmp = TABLE_SIZE - 1;
+    st_indextmp = TMP_BASE;
 }
 
 // O(TABLE_SIZE)
 int st_search(char *name) {
     // Search for the symbol in the first part of the symbol table
-    for (int i = 0; i < st_index; i++) {
-        if (strcmp(symbol_table[i].name, name) == 0) {
-            return i;
-        }
-    }
-    // Search for temporary symbols in the second part of the symbol table
-    // @TODO Is it necessary to search for temporary symbols?
-    for (int i = TABLE_SIZE - 1; i > st_indextmp; i--) {
+    for (int i = st_index - 1; i >= 0; i--) {
         if (strcmp(symbol_table[i].name, name) == 0) {
             return i;
         }
@@ -103,7 +99,7 @@ int st_search(char *name) {
 
 // O(1)
 void st_pop_tmp() {
-    st_indextmp++;
+    st_indextmp--;
 }
 
 // O(1)
@@ -114,6 +110,8 @@ void st_update_tmp(int index, int value) {
 // O(TABLE_SIZE)
 void st_print() {
     printf("\nSymbol table:\n");
+    printf("st_index: %d\n", st_index);
+    printf("st_indextmp: %d\n", st_indextmp);
     printf("______________________________________________\n");
     printf("| %-3s | %-20s | %-5s | %-5s |\n", "#", "Name", "Line", "Depth");
     printf("|-----|----------------------|-------|-------|\n");
@@ -128,7 +126,7 @@ void st_print() {
     }
     printf("|____________________________________________|\n");
     // Print temporary symbols
-    for (int i = st_indextmp + 1; i < TABLE_SIZE; i++) {
+    for (int i = TMP_BASE + 1; i < st_indextmp; i++) {
         printf("| %-3d | %-20s | %-5d | %-5d |\n", 
             i, 
             symbol_table[i].name, 
