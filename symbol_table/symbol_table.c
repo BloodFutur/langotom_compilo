@@ -47,6 +47,20 @@ bool st_is_tmp(int address){
     return ( TABLE_SIZE > address && address >= TMP_BASE);
 }
 
+int st_get_count() {
+    return st_index;
+}
+
+int st_pop_depth(int depth) {
+    int i = st_index;
+    while(i >= 0 && symbol_table[i].depth >= depth) {
+        i--;
+        st_pop();
+    }
+    return i;
+
+}
+
 // O(TABLE_SIZE)
 int st_insert(char *name, int line_number, int depth) {
     if(st_index >= TMP_BASE) {
@@ -64,6 +78,10 @@ int st_insert(char *name, int line_number, int depth) {
     symbol_table[st_index].depth = depth;
     st_index++;
     return st_index-1;
+}
+
+void st_pop() {
+    st_index--;
 }
 
 // O(TABLE_SIZE)

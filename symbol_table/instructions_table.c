@@ -57,6 +57,14 @@ char* it_get_opcode(enum opcode opc) {
             return "PRI";
         case iNOP:
             return "NOP";
+        case iRET:
+            return "RET";
+        case iPUSH:
+            return "PUSH";
+        case iPOP:
+            return "POP";
+        case iCALL:
+            return "CALL";
     }
 }
 
@@ -100,11 +108,11 @@ void it_print_asm() {
         if(opc == iAFC || opc == iCOP || opc == iJMPF) {
             fprintf(file,"%s %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT || opc==iJMP || opc==iPRINT) {
+        } else if (opc==iNOT || opc==iJMP || opc==iPRINT || opc==iRET || opc==iPUSH || opc==iPOP || opc==iCALL) {
             fprintf(file,"%s %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1);
             continue;
         } else if (opc==iNOP) {
-            fprintf(file,"%s\n", it_get_opcode(i_table[i].opcode));
+            fprintf(file,"%s 0\n", it_get_opcode(i_table[i].opcode));
             continue;
         } else {
             fprintf(file,"%s %d %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2, i_table[i].op3);
@@ -117,13 +125,13 @@ void it_print_asm() {
 /* Print the assembly code into the console */
 void it_pretty_print() {
 
-    printf("Instructions Table:\n");
+    printf("\nInstructions Table:\n");
     for(int i = 0; i < it_index; i++) {
         enum opcode opc = i_table[i].opcode;
         if(opc == iAFC || opc == iCOP || opc == iJMPF) {
             printf("0x%02x\t %-5s %-4d %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT || opc==iJMP || opc==iPRINT) {
+        } else if (opc==iNOT || opc==iJMP || opc==iPRINT || opc==iRET || opc==iPUSH || opc==iPOP || opc==iCALL) {
             printf("0x%02x\t %-5s %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1);
             continue;
         } else if (opc==iNOP) {
@@ -134,6 +142,7 @@ void it_pretty_print() {
             continue;
         }
     }
+    printf("\n");
 }
 
 /* Clear the instructions table */

@@ -94,9 +94,13 @@ typedef struct {
  * @param iJMPF Jump if false
  * @param iPRINT Print a value
  * @param iNOP No operation
+ * @param iRET Return
+ * @param iPUSH Push a value on the stack
+ * @param iPOP Pop a value from the stack
+ * @param iCALL Call a function
  * 
  */
-enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT, iJMP, iJMPF, iPRINT, iNOP};
+enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT, iJMP, iJMPF, iPRINT, iNOP, iRET, iPUSH, iPOP, iCALL};
 
 /**
  * @brief Get the opcode of an instruction

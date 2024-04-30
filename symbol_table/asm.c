@@ -41,6 +41,8 @@ int asm_##instruction(int line_number, int address1, int address2, int depth) {\
     if(st_is_tmp(address1)) {st_pop_tmp();} \
     if(st_is_tmp(address2)) {st_pop_tmp();} \
     int address = st_insert_tmp(0, line_number, depth); \
+    st_print(); \
+    it_pretty_print(); \
     it_insert(opcode, address, address1, address2); \
     return address; \
 }
@@ -72,6 +74,7 @@ int asm_nb(int line_number, int address1, int depth){
     // Create a temporary symbol for the result
     int a = st_insert_tmp(address1, line_number, depth);
     st_print();
+    it_pretty_print();
     it_insert(iAFC, a, address1, 0);
     return a;
 }
@@ -85,6 +88,7 @@ void asm_assign(char* address1, int address2){
     it_insert(iCOP, a, address2, 0);
     st_pop_tmp(); // Pop the result of the expression
     st_print();
+    it_pretty_print();
 }
 
 /* Number negation */

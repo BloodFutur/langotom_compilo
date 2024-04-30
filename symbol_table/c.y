@@ -4,8 +4,10 @@
   #include "symbol_table.h"
   #include "asm.h"
   #include "instructions_table.h"
+  #include "functions_table.h"
   extern int line_number;
   int depth = 0;
+  int nb_params = 0;
 %}
 
 %code provides {
@@ -19,8 +21,9 @@
 %token <id> tID // On prend l'identifiant
 %token <n> tIF tELSE
 %token <n> tWHILE
+%token <n> tLPAR
 
-%token tMAIN tPRINT tRETURN tINT tVOID tASSIGN tLPAR tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
+%token tMAIN tPRINT tRETURN tINT tVOID tASSIGN tRPAR tLBRACE tRBRACE tCOMMA tSEMI tERROR
 
 %left tOR
 %left tAND
@@ -33,16 +36,38 @@
 %left tCOMMA
 
 %type <n> Expression
+%type <n> FunctionCall
 
 %%
 
-S :
-    Function S
+S : {
+    printf("S empty\n");
+    it_insert(iJMP, -1, 0, 0);
+  } Program {printf("S with Program\n");}
+  ;
+
+
+Program:
+    Function Program
   | Main {printf("Main: %d\n", line_number);}
   ;
 
 Main :
-  tVOID tMAIN tLPAR tVOID tRPAR tLBRACE {depth++;} Body tRBRACE {depth--;printf("void main(void)\n");}
+  tVOID tMAIN 
+  {
+    it_patch_op1(0,it_get_index());
+    // st_insert("main", line_number, depth);
+    ft_insert("main", it_get_index());
+    // Insert return address and value
+    st_insert("?VAL", line_number, depth);
+    st_insert("?ADR", line_number, depth);
+  } tLPAR tVOID tRPAR LBRACE Body RBRACE 
+  {
+    st_pop_depth(depth);
+    printf("void main(void)\n");
+    it_insert(iRET, 0, 0, 0);
+    it_insert(iNOP, 0, 0, 0);
+  }
   ;
 
 Body : 
@@ -61,21 +86,37 @@ DeclaredVariable :
           printf("declared variable with tID '%s'\n", $1); 
           st_insert($1,line_number, depth);
           }
-  | tID tASSIGN Expression {
-          printf("declared variable with tID '%s' and expression\n", $1);
+  | tID {
+          printf("declared variable with tID '%s'\n", $1); 
           st_insert($1,line_number, depth);
-          asm_assign($1, $3);          
+  } tASSIGN Expression {
+          // printf("Expression: %d\n", $4);
+          asm_assign($1, $4);          
         }
   | DeclaredVariable tCOMMA DeclaredVariable {printf("declared variable with tCOMMA\n");}
   ;
 
 FunctionCall : 
     tID tLPAR tRPAR {printf("function call: %s()\n", $1);}
-  | tID tLPAR ParameterCall tRPAR {printf("function call: %s(params)\n", $1);}
+  | tID tLPAR 
+    {
+      $2 = st_get_count();
+      st_insert("!ADR", line_number, depth);
+      st_insert("!VAL", line_number, depth);
+    } ParameterCall tRPAR 
+    {
+      it_insert(iPUSH, $2, 0, 0);
+      it_insert(iCALL, ft_search($1), 0, 0);
+      it_insert(iPOP, $2, 0, 0);
+      int iADR = st_search("!ADR");
+      it_insert(iCOP, iADR, st_search("!VAL"), 0);
+      printf("function call: %s(params)\n", $1);
+      $$ = iADR;
+    }
   ;
 
 ParameterCall : 
-    Expression {printf("parameter call with expression\n");}
+    Expression {st_insert_tmp($1, line_number, depth) ;printf("parameter call with expression\n");}
   | Expression tCOMMA ParameterCall {printf("parameter call with expression and tCOMMA\n");}
   ;
 
@@ -84,7 +125,7 @@ Expression :
           $$ = st_search($1);
         }
   | tNB { $$ = asm_nb(line_number, $1, depth); }
-  | FunctionCall {printf("expression with function call\n");}
+  | FunctionCall {$$ = $1;printf("expression with function call\n");}
   | tLPAR Expression tRPAR { printf("expression with tLPAR and tRPAR\n"); $$ = $2;
         }
   | Expression tADD Expression { $$ = asm_add(line_number, $1, $3, depth); }
@@ -106,11 +147,18 @@ Expression :
 Instruction : 
     tID tASSIGN Expression tSEMI { asm_assign($1, $3); }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
-  | tRETURN Expression tSEMI {printf("instruction with tRETURN and expression\n");}
-  | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
-  | tIF tLPAR Expression tRPAR tLBRACE
+  | tRETURN Expression tSEMI 
     {
-      depth++;
+      // Get ?VAL address
+      st_print();
+      int iVAL = st_search("?VAL");
+      it_insert(iCOP, iVAL, $2, 0);
+      it_insert(iRET, 0, 0, 0);
+      printf("instruction with tRETURN and expression\n");
+    }
+  | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
+  | tIF tLPAR Expression tRPAR LBRACE
+    {
       printf("Expression: %d\n", $3);
       //JMP to unknown line if condition not met
       if(st_is_tmp($3)) {st_pop_tmp();}
@@ -123,17 +171,15 @@ Instruction :
       int current = it_get_index();
       it_patch_op2($1, current+1);
     } 
-    tRBRACE {depth--;} ElsePart
+    RBRACE ElsePart
     
-  | tWHILE tLPAR Expression tRPAR tLBRACE 
+  | tWHILE tLPAR Expression tRPAR LBRACE 
     {
-      depth++;
       printf("Expression: %d\n", $3);
       //JMP to unknown line if condition not met
       int line_return = it_insert(iJMPF, $3, -1, 0); 
       $1 = line_return;
-    } Body tRBRACE {
-      depth--;
+    } Body RBRACE {
       printf("instruction with tWHILE and expression\n");
       // Update the line number of the JMPF instruction
       int current = it_get_index();
@@ -146,8 +192,7 @@ Instruction :
   ;
 
 ElsePart : 
-    tELSE tLBRACE {
-      depth++;
+    tELSE LBRACE {
       // Add a JMP instruction to jump to the end of the if/else block
       int line_return = it_insert(iJMP, -1, 0, 0);
       $1 = line_return;
@@ -157,7 +202,7 @@ ElsePart :
       int current = it_get_index();
       it_patch_op1($1, current);
     
-    } tRBRACE {depth--;printf("else part with tELSE\n");}
+    } RBRACE {printf("else part with tELSE\n");}
   | %empty 
     {
       // Add a NOP instruction if the else part is empty
@@ -169,16 +214,46 @@ ElsePart :
   ;
 
 Function : 
-    tINT tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE {printf("function int '%s' (params) \n", $2);}
-  | tVOID tID tLPAR Parameter tRPAR tLBRACE Body tRBRACE {printf("function void '%s' (params) \n", $2);}
-  | tVOID tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE {printf("function void '%s'(void) \n", $2);}
-  | tINT tID tLPAR tVOID tRPAR tLBRACE Body tRBRACE {printf("function int '%s'(void) \n", $2);}
+    tINT tID 
+    {
+      printf("function int '%s'\n", $2);
+      // st_insert($2, line_number, depth);
+      ft_insert($2, it_get_index());
+      // Insert return address
+      // Insert return value
+      st_insert("?ADR", line_number, depth);
+      st_insert("?VAL", line_number, depth);
+    } tLPAR Parameter tRPAR
+    LBRACE {
+
+    } Body RBRACE 
+    {
+      printf("function int '%s' (params) \n", $2);
+
+      // Remove the parameters from the symbol table
+      for(int i = 0; i < nb_params; i++) {
+        st_pop();
+      }
+      nb_params = 0;
+
+      // Remove the return address and value from the symbol table
+      st_pop();
+      st_pop();
+
+      it_insert(iRET, 0, 0, 0);
+    }
+  | tVOID tID tLPAR Parameter tRPAR LBRACE Body RBRACE {printf("function void '%s' (params) \n", $2);}
+  | tVOID tID tLPAR tVOID tRPAR LBRACE Body RBRACE {printf("function void '%s'(void) \n", $2);}
+  // | tINT tID tLPAR tVOID tRPAR LBRACE Body RBRACE {printf("function int '%s'(void) \n", $2);}
   ;
 
 Parameter : 
-    tINT tID {printf("parameter int '%s'\n", $2);}
+    tINT tID {st_insert($2, line_number, depth+1); nb_params++; printf("parameter int '%s'\n", $2);}
   | tINT tID tCOMMA Parameter {printf("parameter int '%s' and tCOMMA\n", $2);}
   ;
+
+LBRACE : tLBRACE {depth++;printf("LBRACE\n");}
+RBRACE : tRBRACE {depth--;printf("RBRACE\n");}
 
 %%
 
@@ -196,6 +271,7 @@ int main(void) {
   // asm_close();
   it_pretty_print();
   it_print_asm();
+  ft_print();
   // st_test();
   // it_test();
 }

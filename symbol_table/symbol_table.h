@@ -23,6 +23,8 @@
 
 #define TABLE_SIZE 255 // Change this value if you need more symbols
 
+
+
 /**
  * @brief A symbol in the symbol table
  * 
@@ -53,6 +55,9 @@ typedef struct {
  */
 bool st_is_tmp(int address);
 
+int st_get_count();
+int st_pop_depth(int depth);
+
 
 /**
  * @brief Insert a symbol in the symbol table
@@ -64,6 +69,9 @@ bool st_is_tmp(int address);
  * @return the index of the symbol in the symbol table
  */
 int st_insert(char *name, int line_number, int depth);
+
+
+void st_pop();
 
 /**
  * @brief Insert a temporary symbol in the symbol table
