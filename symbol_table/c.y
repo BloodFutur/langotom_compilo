@@ -8,6 +8,7 @@
   extern int line_number;
   int depth = 0;
   int nb_params = 0;
+  int nb_args = 0;
 %}
 
 %code provides {
@@ -59,8 +60,8 @@ Main :
     // st_insert("main", line_number, depth);
     ft_insert("main", it_get_index());
     // Insert return address and value
-    st_insert("?VAL", line_number, depth);
-    st_insert("?ADR", line_number, depth);
+    st_insert("?VALMain", line_number, depth);
+    // st_insert("?ADRMain", line_number, depth);
   } tLPAR tVOID tRPAR LBRACE Body RBRACE 
   {
     st_pop_depth(depth);
@@ -90,8 +91,8 @@ DeclaredVariable :
           printf("declared variable with tID '%s'\n", $1); 
           st_insert($1,line_number, depth);
   } tASSIGN Expression {
-          // printf("Expression: %d\n", $4);
-          asm_assign($1, $4);          
+          printf("Expression: %d\n", $4);
+          asm_assign($1, $4);        
         }
   | DeclaredVariable tCOMMA DeclaredVariable {printf("declared variable with tCOMMA\n");}
   ;
@@ -100,6 +101,7 @@ FunctionCall :
     tID tLPAR tRPAR {printf("function call: %s()\n", $1);}
   | tID tLPAR 
     {
+      depth++;
       $2 = st_get_count();
       st_insert("!ADR", line_number, depth);
       st_insert("!VAL", line_number, depth);
@@ -108,15 +110,59 @@ FunctionCall :
       it_insert(iPUSH, $2, 0, 0);
       it_insert(iCALL, ft_search($1), 0, 0);
       it_insert(iPOP, $2, 0, 0);
+
+      printf("NB ARGS: %d\n", nb_args);
+      st_print();
+      // Remove the parameters from the symbol table
+      // for(int i = 0; i < nb_args; i++) {
+      //   st_pop();
+      // }
+
+      st_pop();
+      st_pop();
+
+
+      printf("Depth: %d\n", depth);
+      
+
+      // st_pop_depth(depth); // Remove badly managed symbols
+      printf("RES??? %d", $2);
+      nb_args = 0;
       int iADR = st_search("!ADR");
-      it_insert(iCOP, iADR, st_search("!VAL"), 0);
+
+      int iVAL = st_get_count();
+      $$ = iVAL;
+      printf("iVAL: %d\n", iVAL);
+      
+      // it_insert(iCOP, iADR, iADR+1, 0);
       printf("function call: %s(params)\n", $1);
-      $$ = iADR;
+
+      printf("Symbol table after function call\n:");
+      st_print();
+      depth--;
+
     }
   ;
 
 ParameterCall : 
-    Expression {st_insert_tmp($1, line_number, depth) ;printf("parameter call with expression\n");}
+    Expression 
+    {
+      // Argument is a tmp variable
+      st_pop();
+
+      // Get the value of the expression
+      int expressionVal = st_get_tmp($1);
+      printf("expressionVal: %d\n", expressionVal);
+
+      // Insert var name in symbol table
+      // Make a copy of the expression to it 
+      char str[16];
+      sprintf(str, "%d", expressionVal);
+      st_insert(str, line_number, depth);
+      // st_insert_tmp($1, line_number, depth);
+      nb_args++;
+      printf("parameter call with expression\n");
+    }
   | Expression tCOMMA ParameterCall {printf("parameter call with expression and tCOMMA\n");}
   ;
 
@@ -125,7 +171,7 @@ Expression :
           $$ = st_search($1);
         }
   | tNB { $$ = asm_nb(line_number, $1, depth); }
-  | FunctionCall {$$ = $1;printf("expression with function call\n");}
+  | FunctionCall {$$ = $1;printf("expression with function call, %d\n", $1);}
   | tLPAR Expression tRPAR { printf("expression with tLPAR and tRPAR\n"); $$ = $2;
         }
   | Expression tADD Expression { $$ = asm_add(line_number, $1, $3, depth); }
@@ -145,7 +191,7 @@ Expression :
   ;
 
 Instruction : 
-    tID tASSIGN Expression tSEMI { asm_assign($1, $3); }
+    tID tASSIGN Expression tSEMI { asm_assign($1, $3); printf("ASSIGN with id: %s and expression: %d", $1, $3); }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
   | tRETURN Expression tSEMI 
     {

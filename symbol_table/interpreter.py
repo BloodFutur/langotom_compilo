@@ -8,17 +8,21 @@ mem[0]  = -1
 import time
 
 # print(asm)
-
+debug = False
 memoryOffset = 0
 ip = 0
-while ip < len(asm):
-    print("\n")
-    print("ip: " + str(ip))
-    print("memoryOffset: " + str(memoryOffset))
-    print("mem: " + str(mem))
-    print("asm[ip]: " + str(asm[ip]))
+max_iter = 35
+iter = 0
+while ip < len(asm) and iter < max_iter:
+    iter += 1
+    if debug:
+        print("\n")
+        print("ip: " + str(ip))
+        print("memoryOffset: " + str(memoryOffset))
+        print("mem: " + str(mem))
+        print("asm[ip]: " + str(asm[ip]))
     # Sleep for 0.1 seconds
-    time.sleep(0.05)  
+    # time.sleep(0.05)  
     if asm[ip][0] == "AFC":
         mem[asm[ip][1] + memoryOffset] = asm[ip][2]
         ip += 1

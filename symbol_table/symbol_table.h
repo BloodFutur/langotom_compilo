@@ -126,6 +126,8 @@ void st_clear();
  */
 int st_search(char *name);
 
+int st_get_tmp(int index);
+
 /**
  * @brief Delete a symbol from the symbol table
  * 

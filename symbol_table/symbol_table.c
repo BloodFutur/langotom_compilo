@@ -63,11 +63,15 @@ int st_get_count() {
 }
 
 int st_pop_depth(int depth) {
-    int i = st_index;
+    int i = st_index-1;
+    printf("Popping symbols with depth >= %d\n", depth);
+    printf("Current symbol depth: %d\n", symbol_table[i].depth);
     while(i >= 0 && symbol_table[i].depth >= depth) {
         i--;
+        printf("Popping symbol %s\n", symbol_table[i].name);
         st_pop();
     }
+    printf("Popped %d symbols\n", st_index - i - 1);
     return i;
 
 }
@@ -126,6 +130,10 @@ int st_search(char *name) {
         }
     }
     return -1;
+}
+
+int st_get_tmp(int index) {
+    return atoi(symbol_table[index].name);
 }
 
 // O(1)
