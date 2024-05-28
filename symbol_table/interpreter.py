@@ -11,7 +11,7 @@ import time
 debug = False
 memoryOffset = 0
 ip = 0
-max_iter = 35
+max_iter = 500
 iter = 0
 while ip < len(asm) and iter < max_iter:
     iter += 1
@@ -71,10 +71,15 @@ while ip < len(asm) and iter < max_iter:
     elif asm[ip][0] == "JMP":
         ip = asm[ip][1]
     elif asm[ip][0] == "JMF":
-        if not mem[asm[ip][1]]:
+        if not mem[asm[ip][1] + memoryOffset]:
             ip = asm[ip][2]
+            if debug:
+                print(mem[asm[ip][1] + memoryOffset])
+                print("Jumping to " + str(ip) + "because of: " + str(mem[asm[ip][1]]))
         else:
             ip += 1
+            if debug:
+                print("Not jumping")
     elif asm[ip][0] == "PRI":
         print(mem[asm[ip][1]] + memoryOffset)
         ip += 1
