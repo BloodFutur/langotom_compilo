@@ -68,12 +68,15 @@ int st_pop_depth(int depth) {
     int i = st_index-1;
     printf("Popping symbols with depth >= %d\n", depth);
     printf("Current symbol depth: %d\n", symbol_table[i].depth);
+
+    int count = 0;
     while(i >= 0 && symbol_table[i].depth >= depth) {
         i--;
         printf("Popping symbol %s\n", symbol_table[i].name);
         st_pop();
+        count++;
     }
-    printf("Popped %d symbols\n", st_index - i - 1);
+    printf("Popped %d symbols\n", count);
     return i;
 
 }
