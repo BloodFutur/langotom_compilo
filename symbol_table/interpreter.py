@@ -1,28 +1,79 @@
-lines = open("asm.txt", "r").readlines()
-asm = [l.split(" ") for l in lines]
-asm = [[l[0]] + [int(x) for x in l[1:]] for l in asm]
-mem = [0] * 255
+"""
+    @Author: Anna & Ronan
+    @Date: 05/2024
+    @Description: 
+    
+    This script interprets the assembly code stored in the file "asm.txt"
+                  and executes the corresponding instructions.
 
-mem[0]  = -1
-
+    List of instructions:
+      - AFC: Assign a value to a memory location
+      - COP: Copy a value from one memory location to another
+      - ADD: Add two values and store the result in a memory location
+      - SOU: Subtract two values and store the result in a memory location
+      - MUL: Multiply two values and store the result in a memory location
+      - DIV: Divide two values and store the result in a memory location
+      - EQU: Check if two values are equal and store the result in a memory location
+      - NEQ: Check if two values are not equal and store the result in a memory location
+      - LT: Check if a value is less than another and store the result in a memory location
+      - LE: Check if a value is less or equal to another and store the result in a memory location
+      - GT: Check if a value is greater than another and store the result in a memory location
+      - GE: Check if a value is greater or equal to another and store the result in a memory location
+      - NOT: Negate a value and store the result in a memory location
+      - AND: Compute the logical AND of two values and store the result in a memory location
+      - OR: Compute the logical OR of two values and store the result in a memory location
+      - JMP: Jump to a specific instruction
+      - JMF: Jump to a specific instruction if a condition is met
+      - PRI: Print a value
+      - PUSH: Increase the memory offset / move the stack frame
+      - POP: Decrease the memory offset / move the stack frame
+      - CALL: Call a function
+      - RET: Return from a function
+      - NOP: Do nothing
+"""
 import time
 
-# print(asm)
-debug = False
-memoryOffset = 0
-ip = 0
-max_iter = 500
-iter = 0
+# Read the assembly code from the file
+filename = "asm.txt"
+lines = open(filename, "r").readlines()
+asm_raw = [l.split(" ") for l in lines]
+
+# Convert the assembly code to a list of tuples of the form
+# (instruction, arg1, arg2, arg3)
+asm: list[tuple[str, int, int, int]] = [[l[0]] + [int(x) for x in l[1:]] for l in asm_raw]
+
+# Initialize the memory, its size is 256 bytes
+# if the memory is too small, the program will crash
+mem = [0] * 256 
+
+
+# Initialize the interpreter
+debug: bool = False     # Set to True to print debug information
+memoryOffset: int = 0   # The memory offset, used to simulate the stack pointer
+ip: int = 0             # The instruction pointer
+max_iter: int = 5000    # The maximum number of iterations before stopping the program
+iter: int = 0           # The current iteration
+
+
+# Execute the program
 while ip < len(asm) and iter < max_iter:
     iter += 1
+
+    # Print debug information
     if debug:
         print("\n")
         print("ip: " + str(ip))
         print("memoryOffset: " + str(memoryOffset))
         print("mem: " + str(mem))
         print("asm[ip]: " + str(asm[ip]))
-    # Sleep for 0.1 seconds
+    
+    # Sleep for 0.05 seconds, to slow down the execution
     # time.sleep(0.05)  
+
+    # Execute the instruction
+    # The compiler is memory based, so the memory is used to store the values
+    # The memory offset allows to simulate the stack pointer
+
     if asm[ip][0] == "AFC":
         mem[asm[ip][1] + memoryOffset] = asm[ip][2]
         ip += 1

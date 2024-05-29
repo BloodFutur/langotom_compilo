@@ -10,6 +10,8 @@
 #include "symbol_table.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h> // For the atoi function warning
+
 
 // #define TMP_BASE TABLE_SIZE/2
 
@@ -131,6 +133,7 @@ int st_search(char *name) {
     }
     return -1;
 }
+
 
 int st_get_tmp(int index) {
     return atoi(symbol_table[index].name);

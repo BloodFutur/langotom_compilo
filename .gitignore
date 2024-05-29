@@ -14,3 +14,4 @@ symbol_table/c.tab.c
 symbol_table/c.tab.h
 symbol_table/c.output
 symbol_table/c
+.vscode/
