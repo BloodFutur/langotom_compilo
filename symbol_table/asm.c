@@ -68,6 +68,41 @@ ASSEMBLE_BINARY_OP(ge, iGE)   // Greater than or equal
 ASSEMBLE_BINARY_OP(and, iAND) // Logical AND
 ASSEMBLE_BINARY_OP(or, iOR)   // Logical OR
 
+
+void asm_init() {
+    // By default, the main function is the entry point of the program
+    // The first instruction sets the return address to -1 so that the program stops
+    it_insert(iAFC, 0, -1, 0);
+    it_insert(iJMP, -1, 0, 0);
+}
+
+void asm_main_start(int line_number, int depth) {
+    // Update the instruction index of the main function to jump to the main function
+    // when the program starts
+    it_patch_op1(1,it_get_index());
+
+    // Insert main function in the function table
+    ft_insert("main", it_get_index());
+    st_insert("?ADRMain", line_number, depth);
+    st_insert("?VALMain", line_number, depth);
+}
+
+void asm_main_end(int depth) {
+    // Remove everything from the symbol table
+    // Should only remain the return address and value
+    st_pop_depth(depth);
+    printf("void main(void)\n");
+    it_insert(iRET, 0, 0, 0);
+    it_insert(iNOP, 0, 0, 0);
+}
+
+/* Var entry*/
+void asm_var(char* name, int line_number, int depth) {
+    printf("declared variable with tID '%s'\n", name); 
+    st_insert(name,line_number, depth);
+    st_print();
+}
+
 /* Number entry */
 int asm_nb(int line_number, int address1, int depth){
     printf("expression with tNB '%d'\n", address1);
@@ -119,6 +154,39 @@ void asm_print(int address1) {
     printf("instruction with tPRINT and expression\n");
     if(st_is_tmp(address1)) {st_pop_tmp();}
     it_insert(iPRINT,address1, 0,0);
+}
+
+void asm_function_new_start(char* name, int line_number, int depth) {
+    printf("function int '%s'\n", name);
+    // Add the function to the function table
+    ft_insert(name, it_get_index());
+    // Insert return and value address in the symbol table
+    st_insert("?ADR", line_number, depth);
+    st_insert("?VAL", line_number, depth);
+}
+
+void asm_function_new_end(int nb_params) {
+    // Remove the parameters from the symbol table
+    for(int i = 0; i < nb_params; i++) {
+    st_pop();
+    }
+
+    // Remove the return address and value from the symbol table
+    st_pop();
+    st_pop();
+
+    it_insert(iRET, 0, 0, 0);
+}
+
+/* Function preparation */
+int asm_function_prepare_stack(int line_number, int depth) {
+    int tsp = st_get_count(); // Get the symbol table size (stack size)
+    
+    // Insert return address and value
+    st_insert("!ADR", line_number, depth);
+    st_insert("!VAL", line_number, depth);
+
+    return tsp;
 }
 
 /* Function call */
@@ -177,6 +245,7 @@ void asm_function_call_arg(int address, int arg_index, int line_number, int dept
       }
 }
 
+/* Function return */
 void asm_function_return(int expression_address, int depth) {
       // Get ?VAL address
       st_print();
@@ -192,4 +261,52 @@ void asm_function_return(int expression_address, int depth) {
       // Return to the return address
       it_insert(iRET, 0, 0, 0);
       printf("instruction with tRETURN and expression\n");
+}
+
+/* If preparatino*/
+int asm_if_prepare(int expression_address) {
+    if(st_is_tmp(expression_address)) {st_pop_tmp();}
+    return it_insert(iJMPF, expression_address, -1, 0); 
+}
+
+/* If patch*/
+void asm_if_patch(int jmp_address) {
+    // Update the line number of the JMPF instruction
+    int current = it_get_index();
+    it_patch_op2(jmp_address, current+1);
+}
+
+/* Else preparation */
+int asm_else_prepare() {
+    // Add a JMP instruction to jump to the end of the if/else block
+    return it_insert(iJMP, -1, 0, 0);
+}
+
+/* Else patch */
+void asm_else_patch(int jmp_address) {
+    // Update the line number of the JMP instruction
+    it_patch_op1(jmp_address, it_get_index());
+}
+
+/* Else empty */
+void asm_else_empty() {
+    // Add a NOP instruction if the else part is empty
+    // because we jump to the end of the if block and if there is a else part,
+    // we have one more instruction to execute
+    it_insert(iNOP, 0, 0, 0);
+}
+
+/* While preparation */
+int asm_while_prepare(int expression_address) {
+    return it_insert(iJMPF, expression_address, -1, 0); 
+}
+
+/* While patch */
+void asm_while_patch(int jmp_address) {
+    // Update the line number of the JMPF instruction
+    it_patch_op2(jmp_address, it_get_index()+1);
+    // JMP to the entry of while loop again after executing body
+    it_insert(iJMP, jmp_address-1, 0, 0);
+    st_pop_tmp(); // @TODO: check if this is correct,we need to pop 
+    // the temporary variable from the stack at a moment but idk when
 }
