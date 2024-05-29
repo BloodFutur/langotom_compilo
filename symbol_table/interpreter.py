@@ -36,11 +36,18 @@ import time
 # Read the assembly code from the file
 filename = "asm.txt"
 lines = open(filename, "r").readlines()
-asm_raw = [l.split(" ") for l in lines]
+asm_raw = [l.split() for l in lines]
+
+# Remove empty lines, commments and labels
+asm_clean = []
+for e in asm_raw:
+    if e==[] or e[0].startswith("#") or e[0].startswith("\n") or e[0].startswith("."): 
+        continue
+    asm_clean.append(e)
 
 # Convert the assembly code to a list of tuples of the form
 # (instruction, arg1, arg2, arg3)
-asm: list[tuple[str, int, int, int]] = [[l[0]] + [int(x) for x in l[1:]] for l in asm_raw]
+asm: list[tuple[str, int, int, int]] = [[l[0]] + [int(x) for x in l[1:]] for l in asm_clean]
 
 # Initialize the memory, its size is 256 bytes
 # if the memory is too small, the program will crash
@@ -48,6 +55,7 @@ mem = [0] * 256
 
 
 # Initialize the interpreter
+show_memory: bool = True # Set to True to print the memory at the end of the execution
 debug: bool = False     # Set to True to print debug information
 memoryOffset: int = 0   # The memory offset, used to simulate the stack pointer
 ip: int = 0             # The instruction pointer
@@ -152,6 +160,7 @@ while ip < len(asm) and iter < max_iter:
         print("Unknown instruction: " + asm[ip][0])
         break
 
-print("\nMemory at the end:")
-print(mem)    
+if show_memory:
+    print("\nMemory at the end:")
+    print(mem)    
 

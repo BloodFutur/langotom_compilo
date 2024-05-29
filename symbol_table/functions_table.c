@@ -44,6 +44,10 @@ int ft_search(char *name) {
     return -1;
 }
 
+struct_function ft_search_by_address(int address) {
+    return functions_table[address];
+}
+
 void ft_clear() {
     ft_index = 0;
 }

@@ -18,6 +18,8 @@ int ft_insert(char *name, int memory_address);
  */
 int ft_search(char *name);
 
+struct_function ft_search_by_address(int address);
+
 void ft_clear();
 
 void ft_print();
