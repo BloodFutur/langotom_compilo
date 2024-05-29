@@ -86,7 +86,9 @@ void asm_assign(char* address1, int address2){
     // Get the address of the variable to assign to
     int a=st_search(address1);
     it_insert(iCOP, a, address2, 0);
-    st_pop_tmp(); // Pop the result of the expression
+    if(st_is_tmp(address2)) {st_pop_tmp();}
+
+    // st_pop_tmp(); // Pop the result of the expression
     st_print();
     it_pretty_print();
 }

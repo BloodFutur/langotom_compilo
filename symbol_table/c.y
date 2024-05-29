@@ -91,7 +91,10 @@ DeclaredVariable :
           printf("declared variable with tID '%s'\n", $1); 
           st_insert($1,line_number, depth);
   } tASSIGN Expression {
-          printf("Expression: %d\n", $4);
+          st_print();
+          st_print();
+          printf("Expression: %s & %d\n",$1, $4);
+
           asm_assign($1, $4);        
         }
   | DeclaredVariable tCOMMA DeclaredVariable {printf("declared variable with tCOMMA\n");}
@@ -118,6 +121,7 @@ FunctionCall :
       //   st_pop();
       // }
 
+      // Remove the return address and value from the symbol table
       st_pop();
       st_pop();
 
@@ -125,13 +129,13 @@ FunctionCall :
       printf("Depth: %d\n", depth);
       
 
-      // st_pop_depth(depth); // Remove badly managed symbols
+      st_pop_depth(depth); // Remove badly managed symbols
       printf("RES??? %d", $2);
       nb_args = 0;
       int iADR = st_search("!ADR");
 
       int iVAL = st_get_count();
-      $$ = iVAL;
+      $$ = iVAL+1;
       printf("iVAL: %d\n", iVAL);
       
       // it_insert(iCOP, iADR, iADR+1, 0);
@@ -140,7 +144,6 @@ FunctionCall :
       printf("Symbol table after function call\n:");
       st_print();
       depth--;
-
     }
   ;
 
@@ -148,27 +151,45 @@ ParameterCall :
     Expression 
     {
       // Argument is a tmp variable
-      st_pop();
 
-      // Get the value of the expression
-      int expressionVal = st_get_tmp($1);
-      printf("expressionVal: %d\n", expressionVal);
+      printf("ExpressionParameterCall: %d\n", $1);
+      
+      if(st_is_tmp($1))
+      {
+        st_pop();
 
-      // Insert var name in symbol table
-      // Make a copy of the expression to it 
-      char str[16];
-      sprintf(str, "%d", expressionVal);
-      st_insert(str, line_number, depth);
-      // st_insert_tmp($1, line_number, depth);
+        // Get the value of the expression
+        int expressionVal = st_get_tmp($1);
+        printf("expressionVal: %d\n", expressionVal);
+
+        // Insert var name in symbol table
+        // Make a copy of the expression to it 
+        char str[16];
+        // sprintf(str, "%d", expressionVal);
+        sprintf(str, "arg%d", nb_args);
+        st_insert(str, line_number, depth);
+        // st_insert_tmp($1, line_number, depth);
+      } else {
+        // Insert var name in symbol table
+        // int res = st_insert($1, line_number, depth);
+        // it_insert(iCOP, res, res, 0);
+        char str[16];
+        sprintf(str, "arg%d", nb_args);
+        int res = st_insert(str, line_number, depth);
+        it_insert(iCOP, res, $1, 0);
+      }
+
+      
       nb_args++;
       printf("parameter call with expression\n");
     }
-  | Expression tCOMMA ParameterCall {printf("parameter call with expression and tCOMMA\n");}
+  | ParameterCall tCOMMA ParameterCall {printf("parameter call with expression and tCOMMA\n");}
   ;
 
 Expression : 
     tID {printf("expression with tID '%s'\n", $1);
           $$ = st_search($1);
+          
         }
   | tNB { $$ = asm_nb(line_number, $1, depth); }
   | FunctionCall {$$ = $1;printf("expression with function call, %d\n", $1);}
@@ -191,7 +212,15 @@ Expression :
   ;
 
 Instruction : 
-    tID tASSIGN Expression tSEMI { asm_assign($1, $3); printf("ASSIGN with id: %s and expression: %d", $1, $3); }
+    tID tASSIGN Expression tSEMI 
+    { 
+      printf("Symbol table before assign\n:");
+      st_print();
+      asm_assign($1, $3);
+      printf("Symbol table after assign\n:");
+      st_print();
+      printf("ASSIGN with id: %s and expression: %d", $1, $3);
+   }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
   | tRETURN Expression tSEMI 
     {
@@ -199,6 +228,7 @@ Instruction :
       st_print();
       int iVAL = st_search("?VAL");
       it_insert(iCOP, iVAL, $2, 0);
+      st_pop_depth(depth);
       it_insert(iRET, 0, 0, 0);
       printf("instruction with tRETURN and expression\n");
     }
@@ -280,6 +310,7 @@ Function :
       for(int i = 0; i < nb_params; i++) {
         st_pop();
       }
+      printf("NB PARAMS: %d\n", nb_params);
       nb_params = 0;
 
       // Remove the return address and value from the symbol table
@@ -287,6 +318,9 @@ Function :
       st_pop();
 
       it_insert(iRET, 0, 0, 0);
+
+      printf("Symbol table after function\n:");
+      st_print();
     }
   | tVOID tID tLPAR Parameter tRPAR LBRACE Body RBRACE {printf("function void '%s' (params) \n", $2);}
   | tVOID tID tLPAR tVOID tRPAR LBRACE Body RBRACE {printf("function void '%s'(void) \n", $2);}
@@ -294,8 +328,8 @@ Function :
   ;
 
 Parameter : 
-    tINT tID {st_insert($2, line_number, depth+1); nb_params++; printf("parameter int '%s'\n", $2);}
-  | tINT tID tCOMMA Parameter {printf("parameter int '%s' and tCOMMA\n", $2);}
+    tINT tID {st_insert($2, line_number, depth); nb_params++; printf("parameter int '%s'\n", $2);}
+  | Parameter tCOMMA Parameter {printf("parameters and tCOMMA\n");}
   ;
 
 LBRACE : tLBRACE {depth++;printf("LBRACE\n");}

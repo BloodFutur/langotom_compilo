@@ -1,15 +1,27 @@
-int f(int a) {
-  if (a == 0) {
+int f(int a, int b) {
+  return a+b;
+}
+
+int fact(int n) {
+  if (n == 0) {
     return 1;
   } else {
-    return a * f(a - 1);
+    return n*fact(n-1);
   }
 }
 
+int inc(int n) {
+  return n+1;
+}
+
 void main(void) { // Main function
-  int a = 1;
-  a = f(6);
-  int b = a + 3;
-  print(a); // Print 2+6=8
-  print(b); // Print 8+3=11
+  int a = 42;
+  int b = 69;
+  int c = f(a,b);
+  int d = fact(6);
+  int e = inc(42);
+  print(c); // Print 42+69=111
+  print(d); // Factorial of 6=720
+  print(e);
+
 }
