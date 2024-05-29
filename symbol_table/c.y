@@ -128,74 +128,16 @@ FunctionCall :
       st_insert("!VAL", line_number, depth);
     } ParameterCall tRPAR 
     {
-
-      // Create new frame for the function call
-      it_insert(iPUSH, $2, 0, 0);
-      it_insert(iCALL, ft_search($1), 0, 0);
-      it_insert(iPOP, $2, 0, 0);
-
-      // printf("NB ARGS: %d\n", nb_args);
-      st_print();
-
-      // Remove the parameters from the symbol table
-      // for(int i = 0; i < nb_args; i++) {
-      //   st_pop();
-      // }
-
-      // Remove the return address and value from the symbol table
-      st_pop();
-      st_pop();      
-
-      // Remove the badly managed symbols
-      // Should not remove anything, but just in case
-      st_pop_depth(depth);
-
-      // Reset the number of arguments for the next function call
-      nb_args = 0;
-
-      // Get the return value of the function to use it in the expression
-      int iVAL = st_get_count();
-      $$ = iVAL+1;
-      // printf("iVAL: %d\n", iVAL);
-      
-      printf("function call: %s(params)\n", $1);
-      st_print(); // Print the symbol table, should not contain the function call symbols
-      depth--;
+      $$ = asm_function_call($1, $2, depth);
+      depth--;       // Go back to the previous scope
+      nb_args = 0;   // Reset for the next function call
     }
   ;
 
 ParameterCall : 
     Expression 
     {
-      // If the expression is a temporary variable
-      // we need to pop it from the symbol table and insert it again in the symbol table as a new variable
-      // to use it in the function call
-      // If the expression is a variable, we can use it directly
-      // and copy its value to the argument variable reserved in the stack
-      // 
-      // Argument name is arg0, arg1, arg2, etc.      
-      if(st_is_tmp($1))
-      {
-        st_pop();
-
-        // Get the value of the expression
-        int expressionVal = st_get_tmp($1);
-        printf("expressionVal: %d\n", expressionVal);
-
-        // Insert the expression in the symbol table as a new variable
-        char str[16];
-
-        sprintf(str, "arg%d", nb_args);
-        st_insert(str, line_number, depth);
-      } else {
-        // Copy the value of the variable to the argument variable reserved in the stack
-        char str[16];
-        sprintf(str, "arg%d", nb_args);
-        int res = st_insert(str, line_number, depth);
-        it_insert(iCOP, res, $1, 0);
-      }
-
-      // Increment the number of arguments      
+      asm_function_call_arg($1, nb_args, line_number, depth);
       nb_args++;
       printf("parameter call with expression\n");
     }

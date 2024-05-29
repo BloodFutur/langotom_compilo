@@ -256,4 +256,34 @@ int asm_not(int line_number, int address1, int depth);
  */
 void asm_print(int address1);
 
+//
+// FUNCTION CALLS
+//
+
+/**
+ * @brief Generate the assembly code for a function call
+ * 
+ * This function generates the assembly code for a function call.
+ * It pushes the arguments on the stack and calls the function.
+ * 
+ * @param name          the name of the function
+ * @param tsp           the top of the stack pointer before the call
+ * @param depth         the depth of the symbol table
+ * @return int the address of the result
+ */
+int asm_function_call(char* name, int tsp, int depth);
+
+/**
+ * @brief Generate the assembly code for arguments
+ * 
+ * This function generates the assembly code for the arguments of a function call.
+ * It pushes the arguments on the stack.
+ * 
+ * @param address       the address of the expression
+ * @param arg_index       the arguments index
+ * @param line_number   the line number in the code
+ * @param depth         the depth of the symbol table
+ */
+void asm_function_call_arg(int address, int arg_index, int line_number, int depth);
+
 #endif // ASM_H 

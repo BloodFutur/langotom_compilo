@@ -15,6 +15,7 @@
 #include <string.h>
 #include "symbol_table.h"
 #include "instructions_table.h"
+#include "functions_table.h"
 
 /**
  * @brief A macro to generate the assembly code for a binary operation
@@ -118,4 +119,60 @@ void asm_print(int address1) {
     printf("instruction with tPRINT and expression\n");
     if(st_is_tmp(address1)) {st_pop_tmp();}
     it_insert(iPRINT,address1, 0,0);
+}
+
+/* Function call */
+int asm_function_call(char* name, int tsp, int depth) {
+    // Create new frame for the function call
+      it_insert(iPUSH, tsp, 0, 0);
+      it_insert(iCALL, ft_search(name), 0, 0);
+      it_insert(iPOP, tsp, 0, 0);
+
+      // Remove the return address and value from the symbol table
+      st_pop();
+      st_pop();      
+
+      // Remove the badly managed symbols
+      // Should not remove anything, but just in case
+      st_pop_depth(depth);
+
+
+      // Get the return value of the function to use it in the expression
+      int iVAL = st_get_count();
+      
+      printf("function call: %s(params)\n", name);
+      st_print(); // Print the symbol table, should not contain the function call symbols
+
+      return iVAL+1;
+}
+
+/* Function call arguments */
+void asm_function_call_arg(int address, int arg_index, int line_number, int depth) {
+    // If the expression is a temporary variable
+      // we need to pop it from the symbol table and insert it again in the symbol table as a new variable
+      // to use it in the function call
+      // If the expression is a variable, we can use it directly
+      // and copy its value to the argument variable reserved in the stack
+      // 
+      // Argument name is arg0, arg1, arg2, etc.      
+      if(st_is_tmp(address))
+      {
+        st_pop();
+
+        // Get the value of the expression
+        int expressionVal = st_get_tmp(address);
+        printf("expressionVal: %d\n", expressionVal);
+
+        // Insert the expression in the symbol table as a new variable
+        char str[16];
+
+        sprintf(str, "arg%d", arg_index);
+        st_insert(str, line_number, depth);
+      } else {
+        // Copy the value of the variable to the argument variable reserved in the stack
+        char str[16];
+        sprintf(str, "arg%d", arg_index);
+        int res = st_insert(str, line_number, depth);
+        it_insert(iCOP, res, address, 0);
+      }
 }
