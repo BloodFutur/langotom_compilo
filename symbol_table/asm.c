@@ -176,3 +176,20 @@ void asm_function_call_arg(int address, int arg_index, int line_number, int dept
         it_insert(iCOP, res, address, 0);
       }
 }
+
+void asm_function_return(int expression_address, int depth) {
+      // Get ?VAL address
+      st_print();
+
+      // Get the return value of the current function
+      // and insert the expression in the return value
+      int iVAL = st_search("?VAL");
+      it_insert(iCOP, iVAL, expression_address, 0);
+
+      // Should not remove anything, but just in case
+      st_pop_depth(depth);
+
+      // Return to the return address
+      it_insert(iRET, 0, 0, 0);
+      printf("instruction with tRETURN and expression\n");
+}

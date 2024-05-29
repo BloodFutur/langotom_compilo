@@ -172,23 +172,7 @@ Instruction :
       printf("ASSIGN with id: %s and expression: %d", $1, $3);
     }
   | FunctionCall tSEMI {printf("instruction with function call\n");}
-  | tRETURN Expression tSEMI 
-    {
-      // Get ?VAL address
-      st_print();
-
-      // Get the return value of the current function
-      // and insert the expression in the return value
-      int iVAL = st_search("?VAL");
-      it_insert(iCOP, iVAL, $2, 0);
-
-      // Should not remove anything, but just in case
-      st_pop_depth(depth);
-
-      // Return to the return address
-      it_insert(iRET, 0, 0, 0);
-      printf("instruction with tRETURN and expression\n");
-    }
+  | tRETURN Expression tSEMI {asm_function_return($2, depth); }
   | tPRINT tLPAR Expression tRPAR tSEMI { asm_print($3); }
   | tIF tLPAR Expression tRPAR LBRACE
     {

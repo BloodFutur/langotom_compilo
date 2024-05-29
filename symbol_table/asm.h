@@ -286,4 +286,16 @@ int asm_function_call(char* name, int tsp, int depth);
  */
 void asm_function_call_arg(int address, int arg_index, int line_number, int depth);
 
+
+/**
+ * @brief Generate the assembly code for a function return
+ * 
+ * This function generates the assembly code for a function return.
+ * It copies the return value to the return adress
+ * 
+ * @param expression_address the address of the expression
+ * @param depth the depth of the symbol table
+ */
+void asm_function_return(int expression_address, int depth);
+
 #endif // ASM_H 
