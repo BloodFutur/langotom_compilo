@@ -1,10 +1,14 @@
-int f(int a, int b) {
+int add(int a, int b) {
   return a+b;
 }
 
-// int one() {
-//   return 1;
-// }
+int one(void) {
+  return 1;
+}
+
+void printa(int a) {
+  print(a);
+}
 
 int fact(int n) {
   if (n == 0) {
@@ -21,12 +25,16 @@ int inc(int n) {
 void main(void) { // Main function
   int a = 42;
   int b = 69;
-  int c = f(a,b);
+  int c = add(a,b);
   int d = fact(6);
   int e = inc(42);
   print(c); // Print 42+69=111
   print(d); // Factorial of 6=720
   print(e);
-  // print(one()); // Print 1
+  int f = one();
+  int g = 0;
+  print(f); // Print 1
+
+  print(89);
 
 }

@@ -80,7 +80,13 @@ DeclaredVariable :
   ;
 
 FunctionCall : 
-    tID tLPAR tRPAR {printf("function call: %s()\n", $1);}
+    tID tLPAR tRPAR 
+    {
+      depth++;       // New scope
+      int tsp = asm_function_prepare_stack(line_number, depth);
+      $$ = asm_function_call($1, tsp, depth);
+      depth--;       // Go back to the previous scope
+    }
   | tID tLPAR 
     {
       depth++;       // New scope
@@ -138,14 +144,16 @@ ElsePart :
   ;
 
 Function : 
-    tINT tID { asm_function_new_start($2, line_number, depth); } tLPAR Parameter tRPAR LBRACE Body RBRACE 
+    tINT tID { asm_function_new_start($2, line_number, depth); } FunctionNext
+  | tVOID tID  { asm_function_new_start($2, line_number, depth); } FunctionNext
+  ;
+
+FunctionNext :
+    tLPAR Parameter tRPAR LBRACE Body RBRACE
     {
       asm_function_new_end(nb_params);
       nb_params = 0;
     }
-  | tVOID tID tLPAR Parameter tRPAR LBRACE Body RBRACE {printf("function void '%s' (params) \n", $2);}
-  // | tVOID tID tLPAR tVOID tRPAR LBRACE Body RBRACE {printf("function void '%s'(void) \n", $2);}
-  // | tINT tID tLPAR tVOID tRPAR LBRACE Body RBRACE {printf("function int '%s'(void) \n", $2);}
   ;
 
 Parameter : 
