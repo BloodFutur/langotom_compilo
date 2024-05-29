@@ -14,6 +14,7 @@
  * @date 2024-04-10
  * 
  * @bug No known bugs
+ * @todo Make the size of the table dynamic
  */
 
 #ifndef SYMBOL_TABLE_H

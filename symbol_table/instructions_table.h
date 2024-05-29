@@ -32,6 +32,7 @@
  * @date 2024-04-10
  * 
  * @bug No known bugs 
+ * @todo Make the size of the table dynamic
  */
 #ifndef INSTRUCTIONS_TABLE_H
 #define INSTRUCTIONS_TABLE_H
