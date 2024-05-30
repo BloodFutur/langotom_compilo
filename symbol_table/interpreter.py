@@ -47,7 +47,7 @@ for e in asm_raw:
 
 # Convert the assembly code to a list of tuples of the form
 # (instruction, arg1, arg2, arg3)
-asm: list[tuple[str, int, int, int]] = [[l[0]] + [int(x) for x in l[1:]] for l in asm_clean]
+asm: list[tuple[str, int, int, int]] = [[l[0]] + [int(x) for x in l[1:]] for l in asm_clean] # type: ignore
 
 # Initialize the memory, its size is 256 bytes
 # if the memory is too small, the program will crash
