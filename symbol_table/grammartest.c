@@ -1,18 +1,40 @@
-void main(void) { // Main function
-  int a;
-  a = 123 + 321 * 4 / 2 - 1; // a = 123 + 321 * 4 / 2 - 1 = 764
-  if (a == 1) {
-    print(a);
+int add(int a, int b) {
+  return a+b;
+}
+
+int one(void) {
+  return 1;
+}
+
+void printa(int a) {
+  print(a);
+}
+
+int fact(int n) {
+  if (n == 0) {
+    return 1;
   } else {
-    print(a - 1); // print(763)
-    int i, j;
-    i = 2;
-    j = a - 10; // j = 764 - 10 = 754
-    while (i < j) {
-      i = i + 1 + 0 + 0;
-      int k;
-      print(i); // print(3), print(4), ..., print(754)
-    }
+    return n*fact(n-1);
   }
-  print(1);
+}
+
+int inc(int n) {
+  return n+1;
+}
+
+void main(void) { // Main function
+  int a = 42;
+  int b = 69;
+  int c = add(a,b);
+  int d = fact(6);
+  int e = inc(42);
+  print(c); // Print 42+69=111
+  print(d); // Factorial of 6=720
+  print(e);
+  int f = one();
+  int g = 0;
+  print(f); // Print 1
+
+  print(89);
+
 }

@@ -9,6 +9,7 @@
  */
 #include <stdio.h> // printf
 #include "instructions_table.h"
+#include "functions_table.h"
 
 /* Instructions Table */
 struct_instruction i_table[INSTRUCTIONS_TABLE_SIZE];
@@ -57,6 +58,14 @@ char* it_get_opcode(enum opcode opc) {
             return "PRI";
         case iNOP:
             return "NOP";
+        case iRET:
+            return "RET";
+        case iPUSH:
+            return "PUSH";
+        case iPOP:
+            return "POP";
+        case iCALL:
+            return "CALL";
     }
 }
 
@@ -95,16 +104,30 @@ void it_print_asm() {
 
     // File opening
     file = fopen("asm.txt", "w");
+
+    int func_index = 0; // Index of function for labelling
     for(int i = 0; i < it_index; i++) {
+         // Print label for entry point
+        if (i == 0 && it_index > 2) {
+            fprintf(file,".entry_point:\n");
+        }
+
+        // Print label for functions
+        struct_function func = ft_search_by_address(func_index);
+        if (i == func.memory_address) {
+            fprintf(file,"\n.%s:\n", func.name);
+            func_index++;
+        }
+
         enum opcode opc = i_table[i].opcode;
         if(opc == iAFC || opc == iCOP || opc == iJMPF) {
             fprintf(file,"%s %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT || opc==iJMP || opc==iPRINT) {
+        } else if (opc==iNOT || opc==iJMP || opc==iPRINT || opc==iRET || opc==iPUSH || opc==iPOP || opc==iCALL) {
             fprintf(file,"%s %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1);
             continue;
         } else if (opc==iNOP) {
-            fprintf(file,"%s\n", it_get_opcode(i_table[i].opcode));
+            fprintf(file,"%s 0\n", it_get_opcode(i_table[i].opcode));
             continue;
         } else {
             fprintf(file,"%s %d %d %d\n", it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2, i_table[i].op3);
@@ -117,13 +140,29 @@ void it_print_asm() {
 /* Print the assembly code into the console */
 void it_pretty_print() {
 
-    printf("Instructions Table:\n");
+    printf("\nInstructions Table:\n");
+    int func_index = 0;
+    printf("Index\tOpcode\tOp1\tOp2\tOp3\n");
+    printf("----------------------------\n");
     for(int i = 0; i < it_index; i++) {
+        // Print label for entry point
+        if (i == 0 && it_index > 2) {
+            printf(".entry_point:\n");
+        }
+
+        // Print label for functions
+        struct_function func = ft_search_by_address(func_index);
+        if (i == func.memory_address) {
+            printf("\n.%s:\n", func.name);
+            func_index++;
+        }
+
         enum opcode opc = i_table[i].opcode;
+
         if(opc == iAFC || opc == iCOP || opc == iJMPF) {
             printf("0x%02x\t %-5s %-4d %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1, i_table[i].op2);
             continue;
-        } else if (opc==iNOT || opc==iJMP || opc==iPRINT) {
+        } else if (opc==iNOT || opc==iJMP || opc==iPRINT || opc==iRET || opc==iPUSH || opc==iPOP || opc==iCALL) {
             printf("0x%02x\t %-5s %-4d\n", i, it_get_opcode(i_table[i].opcode), i_table[i].op1);
             continue;
         } else if (opc==iNOP) {
@@ -134,6 +173,7 @@ void it_pretty_print() {
             continue;
         }
     }
+    printf("\n");
 }
 
 /* Clear the instructions table */

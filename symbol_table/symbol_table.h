@@ -14,6 +14,7 @@
  * @date 2024-04-10
  * 
  * @bug No known bugs
+ * @todo Make the size of the table dynamic
  */
 
 #ifndef SYMBOL_TABLE_H
@@ -22,6 +23,25 @@
 #include <stdbool.h> // bool type
 
 #define TABLE_SIZE 255 // Change this value if you need more symbols
+
+/* Macro to define the symbol types for enum and string conversion */
+#define SYMBOLTYPES \
+    X(TMP) \
+    X(VARIABLE) \
+
+/**
+ * @brief The type of a symbol
+ * 
+ * A symbol can be a variable or a function.
+ */
+typedef enum {
+    #define X(symboltype) symboltype,
+    SYMBOLTYPES
+    #undef X
+} symboltype_t;
+
+
+extern const char* const symboltype_str[];
 
 /**
  * @brief A symbol in the symbol table
@@ -38,6 +58,7 @@
 typedef struct {
     char name[32];
     int line_number;
+    symboltype_t symboltype;
     int depth;
 } struct_symbol;
 
@@ -53,6 +74,9 @@ typedef struct {
  */
 bool st_is_tmp(int address);
 
+int st_get_count();
+int st_pop_depth(int depth);
+
 
 /**
  * @brief Insert a symbol in the symbol table
@@ -64,6 +88,9 @@ bool st_is_tmp(int address);
  * @return the index of the symbol in the symbol table
  */
 int st_insert(char *name, int line_number, int depth);
+// void st_set_symboltype(int index, symboltype_t symboltype);
+
+void st_pop();
 
 /**
  * @brief Insert a temporary symbol in the symbol table
@@ -99,6 +126,8 @@ void st_clear();
  * @return -1 if the symbol is not found
  */
 int st_search(char *name);
+
+int st_get_tmp(int index);
 
 /**
  * @brief Delete a symbol from the symbol table

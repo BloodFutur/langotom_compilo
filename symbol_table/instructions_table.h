@@ -32,6 +32,7 @@
  * @date 2024-04-10
  * 
  * @bug No known bugs 
+ * @todo Make the size of the table dynamic
  */
 #ifndef INSTRUCTIONS_TABLE_H
 #define INSTRUCTIONS_TABLE_H
@@ -94,9 +95,13 @@ typedef struct {
  * @param iJMPF Jump if false
  * @param iPRINT Print a value
  * @param iNOP No operation
+ * @param iRET Return
+ * @param iPUSH Push a value on the stack
+ * @param iPOP Pop a value from the stack
+ * @param iCALL Call a function
  * 
  */
-enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT, iJMP, iJMPF, iPRINT, iNOP};
+enum opcode { iAFC, iCOP, iADD, iSOU, iMUL, iDIV, iEQ, iNEQ, iLT, iLE,  iGT, iGE, iAND, iOR, iNOT, iJMP, iJMPF, iPRINT, iNOP, iRET, iPUSH, iPOP, iCALL};
 
 /**
  * @brief Get the opcode of an instruction
